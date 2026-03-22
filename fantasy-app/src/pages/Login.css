@@ -1,0 +1,129 @@
+.login-page {
+    background: white;
+    min-height: 100vh;
+    padding: 30px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* --- Shared Top nav for Auth --- */
+  .auth-top-nav {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 40px;
+  }
+  
+  .lang-switch {
+    font-size: 13px;
+    font-weight: 700;
+    color: #666;
+  }
+  
+  /* --- Titles --- */
+  .login-page h1 {
+    font-size: 20px;
+    font-weight: 900;
+    color: #333;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+  }
+  
+  /* --- Inputs --- */
+  .auth-form-group {
+    margin-bottom: 24px;
+    border-bottom: 1.5px solid #eee;
+    position: relative;
+  }
+  
+  .auth-form-group label {
+    display: block;
+    font-size: 12px;
+    color: #999;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  
+  .auth-form-group input {
+    width: 100%;
+    border: none;
+    padding: 10px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+    outline: none;
+    background: transparent;
+  }
+  
+  .password-wrap {
+    display: flex;
+    align-items: center;
+  }
+  
+  .pw-toggle {
+    color: #999;
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  .forgot-pw-link {
+    display: block;
+    text-align: right;
+    font-size: 12px;
+    color: #1565c0;
+    font-weight: 700;
+    margin-top: -12px;
+    margin-bottom: 30px;
+  }
+  
+  /* --- Buttons --- */
+  .auth-action-btn {
+    width: 100%;
+    padding: 16px;
+    background: #E41A2D;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(228, 26, 45, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .auth-action-btn:disabled {
+    opacity: 0.6;
+    background: #999;
+  }
+  
+  /* --- Error --- */
+  .auth-error {
+    color: #E41A2D;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 15px;
+    font-weight: 600;
+  }
+  
+  /* --- Footer --- */
+  .auth-footer {
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .auth-link {
+    color: #E41A2D;
+    font-weight: 900;
+    cursor: pointer;
+    margin-left: 6px;
+  }
+  
+  /* --- Visual elements from your current --- */
+  .hero-img, .hero-gradient, .top-area {
+    display: none; /* Hide old elements for 1:1 Dream11 feel */
+  }

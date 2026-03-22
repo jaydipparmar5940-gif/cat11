@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-dream11}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # API Service
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/dream11
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-cat11_secret}
+      CRIC_API_KEY: ${CRIC_API_KEY}
+    depends_on:
+      - db
+      - redis
+
+  # Scoring Worker
+  scoring-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: node src/workers/scoring.worker.js
+    restart: always
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/dream11
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
+
+  # Payout Worker
+  payout-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: node src/workers/payout.worker.js
+    restart: always
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/dream11
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
+
+  # Frontend (Served by Vite in Dev, or Static Nginx in Prod)
+  frontend:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:5000
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

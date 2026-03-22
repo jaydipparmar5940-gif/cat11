@@ -1,0 +1,199 @@
+.wallet-page {
+  background: #F5F5F5;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* --- Header --- */
+.wallet-header {
+  background: #E41A2D;
+  padding: 12px 16px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.wallet-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: white;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* --- Balance Card --- */
+.balance-card {
+  background: white;
+  padding: 24px 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.balance-label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.balance-amount {
+  font-size: 32px;
+  font-weight: 900;
+  color: #000;
+}
+
+.balance-divider {
+  width: 60px;
+  height: 1px;
+  background: #eee;
+  margin: 16px 0;
+}
+
+.balance-types {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.type {
+  text-align: center;
+}
+
+.type small {
+  font-size: 11px;
+  color: #999;
+  display: block;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.type span {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* --- Add Cash Section --- */
+.wallet-actions {
+  background: white;
+  padding: 20px 16px;
+  border-top: 1px solid #eee;
+  margin-bottom: 12px;
+}
+
+.wallet-actions h3 {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.amount-input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 12px;
+  margin-bottom: 16px;
+}
+
+.amount-input-group span {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}
+
+.amount-input-group input {
+  flex: 1;
+  border: none;
+  padding: 14px 10px;
+  font-size: 18px;
+  font-weight: 700;
+  outline: none;
+}
+
+.quick-amounts {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.quick-amounts button {
+  flex: 1;
+  padding: 8px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #666;
+  cursor: pointer;
+}
+
+.add-cash-btn {
+  width: 100%;
+  padding: 14px;
+  background: #00874e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 135, 78, 0.2);
+}
+
+.status-msg {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-msg.success {
+  color: #00874e;
+}
+
+.status-msg.error {
+  color: #e41a2d;
+}
+
+/* --- Menu Section --- */
+.wallet-menu {
+  background: white;
+  border-top: 1px solid #eee;
+}
+
+.menu-item {
+  padding: 18px 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+}
+
+.menu-item span {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+.menu-item .chevron {
+  color: #ccc;
+}

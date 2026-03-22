@@ -1,0 +1,245 @@
+/* Matches.css – Light Theme & Premium Dream11 Cards */
+
+.matches-page {
+  min-height: 100vh;
+  background: #f3f3f3;
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+}
+
+/* Page Header (using Home page top nav style for consistency) */
+.mm-top-nav {
+  background-color: #E41A2D;
+  color: white;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.matches-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Filter tabs */
+.matches-filters {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.mf-btn {
+  padding: 6px 20px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mf-btn--active {
+  background: #333;
+  color: #fff;
+  border-color: #333;
+}
+
+/* Grid */
+.matches-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Match Card (Dream11 Style) */
+.match-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.match-card:active {
+  transform: scale(0.98);
+}
+
+/* Card Header */
+.card-league-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 14px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.league-name {
+  font-size: 11px;
+  color: #888;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.lineups-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #14CB23;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.league-bell {
+  color: #666;
+  opacity: 0.7;
+}
+
+/* Team Full Names Row */
+.card-team-names-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 14px 6px;
+}
+
+.team-full-name {
+  font-size: 11px;
+  color: #444;
+  font-weight: 500;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Match Main Body */
+.card-main-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 16px;
+}
+
+.team-info-left, .team-info-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-logo-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.color-bar {
+  width: 4px;
+  height: 44px;
+  background: #ccc;
+  border-radius: 0 2px 2px 0;
+}
+
+.color-bar.right {
+  border-radius: 2px 0 0 2px;
+}
+
+.team-logo-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 6px;
+}
+
+.team-abbr {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+}
+
+.match-status-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+
+.match-time-red {
+  color: #E41A2D;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Card Footer */
+.card-mega-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 14px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #f0f0f0;
+}
+
+.prize-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mega-badge {
+  background: #E8F5E9;
+  color: #14CB23;
+  font-size: 10px;
+  font-weight: 950;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  border: 1px solid rgba(20, 203, 35, 0.2);
+}
+
+.prize-pool-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+}
+
+.footer-action-icons {
+  display: flex;
+  gap: 14px;
+  color: #666;
+  opacity: 0.8;
+}
+
+/* Empty / Error */
+.matches-empty,
+.matches-error {
+  text-align: center;
+  padding: 80px 20px;
+  color: #888;
+}
+
+.matches-empty span {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.matches-empty p {
+  font-size: 16px;
+  font-weight: 600;
+}

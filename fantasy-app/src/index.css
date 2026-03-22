@@ -1,0 +1,52 @@
+:root {
+  --primary-bg: #0B1218;
+  --secondary-bg: #101219;
+  --card-bg: #FFFFFF;
+  --accent-red: #E41A2D;
+  --brand-cyan: #00BBFF;
+  --success-green: #14CB23;
+  --warning-yellow: #FFC600;
+  --border-color: #2A2F3E;
+  --text-active: #E41A2D;
+  --text-primary: #FFFFFF;
+  --text-secondary: #999999;
+  --text-dark: #333333;
+  --header-height: 56px;
+  --bottom-nav-height: 65px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #000;
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--primary-bg);
+  position: relative;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide scrollbars for a cleaner UI */
+::-webkit-scrollbar {
+  display: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}

@@ -1,0 +1,222 @@
+/* ── PlayerCard.css ────────────────────────────────────────────────────── */
+/* Covers both the individual card and the SquadGrid wrapper.               */
+
+/* ─── CSS Custom Properties ─────────────────────────────────────────────── */
+:root {
+  --card-bg:        rgba(255, 255, 255, 0.06);
+  --card-border:    rgba(255, 255, 255, 0.14);
+  --card-selected:  rgba(220, 38, 38, 0.25);
+  --card-radius:    14px;
+  --text-primary:   #f1f5f9;
+  --text-muted:     #94a3b8;
+  --accent:         #ef4444;
+}
+
+/* ─── Grid wrapper ───────────────────────────────────────────────────────── */
+.squad-grid-wrap {
+  width: 100%;
+  padding: 12px 0 80px;           /* bottom pad for confirm bar */
+}
+
+.squad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.squad-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Role filter pills */
+.squad-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.squad-filter-btn {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.squad-filter-btn.active,
+.squad-filter-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Responsive grid */
+.squad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 12px;
+  padding: 4px;
+}
+
+/* ─── PlayerCard ─────────────────────────────────────────────────────────── */
+.player-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 6px 8px;
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.player-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.player-card:active {
+  transform: scale(0.97);
+}
+
+/* Selected state */
+.player-card--selected {
+  background: var(--card-selected);
+  border-color: var(--accent);
+}
+
+.player-card__tick {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+/* Image */
+.player-card__img-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.player-card--selected .player-card__img-wrap {
+  border-color: var(--accent);
+}
+
+.player-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Role badge */
+.player-card__role {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+/* Name & team */
+.player-card__name {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.player-card__team {
+  margin: 0;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ─── Status / loading ───────────────────────────────────────────────────── */
+.squad-status {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.squad-status--error {
+  color: #f87171;
+}
+
+/* ─── Confirm bar ─────────────────────────────────────────────────────────── */
+.squad-confirm-bar {
+  position: fixed;
+  bottom: 60px;                 /* above bottom-nav */
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #1a1a2e;
+  border-top: 1px solid var(--card-border);
+  z-index: 50;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.squad-confirm-bar span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.squad-confirm-btn {
+  padding: 9px 22px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.squad-confirm-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.squad-confirm-btn:not(:disabled):hover {
+  opacity: 0.85;
+}

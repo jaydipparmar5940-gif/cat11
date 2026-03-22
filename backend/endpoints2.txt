@@ -1,0 +1,12 @@
+[SUCCESS] /mcenter/v1/122709/comm -> Keys: inningsid, comwrapper, matchheaders, appindex, matchvideos, responselastupdated, buzz
+[SUCCESS] /mcenter/v1/122709/scard -> Keys: scorecard, ismatchcomplete, appindex, status, responselastupdated
+[FAIL] /mcenter/v1/122709/squad -> 404 Not Found
+[FAIL] /mcenter/v1/122709/lineup -> 404 Not Found
+[FAIL] /mcenter/v1/122709/full-score -> 404 Not Found
+[SUCCESS] /series/v1/11671/squads -> Keys: squads, appIndex, seriesName, seriesId
+[FAIL] /series/v1/11671/squad/122709 -> 404 Not Found
+[FAIL] /matches/v1/122709/comm -> 404 Not Found
+[FAIL] /matches/v1/122709/squad -> 404 Not Found
+[FAIL] /matches/v1/122709/scorecard -> 404 Not Found
+[FAIL] /stats/v1/match/122709/runningScorecard -> 404 Not Found
+[FAIL] /stats/v1/match/122709/event -> 404 Not Found

@@ -1,0 +1,4 @@
+[FAIL] /mcenter/v1/122709/scard -> undefined 
+[SUCCESS] /mcenter/v1/122709/comm -> Keys: inningsid, comwrapper, matchheaders, appindex, matchvideos, responselastupdated, buzz
+[FAIL] /mcenter/v1/122709/lean -> 404 Not Found
+[FAIL] /mcenter/v1/122709/squads -> 404 Not Found

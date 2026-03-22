@@ -1,0 +1,178 @@
+.team-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+}
+
+.team-preview-container {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tp-header {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.tp-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.tp-match-info {
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.ground-view {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #1a472a; /* Fallback green */
+}
+
+.pitch-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, #2d5a27, #1e3c1a);
+  border: 10px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+}
+
+.pitch-center-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.pitch-inner-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.players-layout {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 40px 10px;
+  z-index: 10;
+}
+
+.role-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.player-icon-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
+}
+
+.player-avatar-box {
+  width: 44px;
+  height: 44px;
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.tp-player-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.badge-c, .badge-vc {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  background: #E41A2D;
+  color: white;
+  font-size: 9px;
+  font-weight: 900;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid white;
+}
+
+.badge-vc {
+  background: #101219;
+}
+
+.player-name-tag {
+  background: white;
+  color: black;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-align: center;
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-credits-tag {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 9px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.tp-footer {
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  text-align: center;
+}
+
+.team-stats-summary {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.8;
+}

@@ -1,0 +1,17 @@
+Error: Cannot find module '.prisma/client/default'
+Require stack:
+- C:\Users\Jimmy\dream11\backend\node_modules\@prisma\client\default.js
+- C:\Users\Jimmy\dream11\backend\src\controllers\auth.controller.js
+- C:\Users\Jimmy\dream11\backend\src\routes\auth.routes.js
+- C:\Users\Jimmy\dream11\backend\src\app.js
+- C:\Users\Jimmy\dream11\backend\catch-err.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Jimmy\dream11\backend\node_modules\@prisma\client\default.js:2:6)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)

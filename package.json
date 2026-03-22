@@ -1,0 +1,22 @@
+{
+  "name": "CAT11-clone",
+  "version": "1.0.0",
+  "description": "CAT11 Clone with Vite dev server",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^5.4.15"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "axios": "^1.13.6",
+    "framer-motion": "^12.37.0",
+    "lucide-react": "^0.577.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1"
+  }
+}

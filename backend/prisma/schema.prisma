@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int            @id @default(autoincrement())
+  name            String?        @db.VarChar(100)
+  email           String         @unique @db.VarChar(100)
+  phone           String?        @db.VarChar(15)
+  password        String
+  walletBalance   Decimal        @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime       @default(now())
+  userTeams       UserTeam[]
+  contestEntries  ContestEntry[]
+  wallet          UserWallet?
+  notifications   Notification[]
+}
+
+model Team {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(100)
+  shortName String    @db.VarChar(10)
+  logo      String?
+  players   Player[]
+  matchesA   Match[]   @relation("TeamA")
+  matchesB   Match[]   @relation("TeamB")
+}
+
+model Player {
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(100)
+  teamId       Int
+  team         Team          @relation(fields: [teamId], references: [id])
+  role         String        @db.VarChar(20) // WK, BAT, AR, BOWL
+  imageUrl     String?
+  createdAt    DateTime      @default(now())
+  playerPoints PlayerPoint[]
+  teamPlayers  TeamPlayer[]
+  squads       MatchSquad[]
+  points       PlayerPoints[]
+
+  @@index([teamId])
+}
+
+model Match {
+  id               Int           @id @default(autoincrement())
+  teamAId          Int
+  teamBId          Int
+  teamA            Team          @relation("TeamA", fields: [teamAId], references: [id])
+  teamB            Team          @relation("TeamB", fields: [teamBId], references: [id])
+  matchStartTime   DateTime
+  status           String        @default("UPCOMING") @db.VarChar(20) // UPCOMING, LIVE, COMPLETED
+  venue            String?
+  apiId            String?       @unique @map("api_id") // Cricbuzz match ID
+  contests         Contest[]
+  userTeams        UserTeam[]
+  playerPoints     PlayerPoint[]
+  squads           MatchSquad[]
+  points           PlayerPoints[]
+
+  @@index([status])
+  @@index([matchStartTime])
+}
+
+model Contest {
+  id             Int            @id @default(autoincrement())
+  matchId        Int
+  match          Match          @relation(fields: [matchId], references: [id])
+  entryFee       Decimal        @db.Decimal(10, 2)
+  totalSpots     Int
+  joinedSpots    Int            @default(0)
+  prizePool      Decimal        @db.Decimal(10, 2)
+  status         String         @default("OPEN") @db.VarChar(20) // OPEN, CLOSED, SETTLED
+  contestEntries ContestEntry[]
+
+  @@index([matchId])
+}
+
+model UserTeam {
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  matchId        Int
+  user           User           @relation(fields: [userId], references: [id])
+  match          Match          @relation(fields: [matchId], references: [id])
+  captainId      Int
+  viceCaptainId  Int
+  teamPlayers    TeamPlayer[]
+  contestEntries ContestEntry[]
+
+  @@unique([userId, matchId])
+  @@index([userId])
+  @@index([matchId])
+}
+
+model TeamPlayer {
+  id         Int      @id @default(autoincrement())
+  userTeamId Int
+  playerId   Int
+  userTeam   UserTeam @relation(fields: [userTeamId], references: [id])
+  player     Player   @relation(fields: [playerId], references: [id])
+
+  @@index([userTeamId])
+  @@index([playerId])
+}
+
+model ContestEntry {
+  id         Int      @id @default(autoincrement())
+  contestId  Int
+  userId     Int
+  userTeamId Int
+  points     Decimal  @default(0) @db.Decimal(10, 2)
+  rank       Int?
+  contest    Contest  @relation(fields: [contestId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  userTeam   UserTeam @relation(fields: [userTeamId], references: [id])
+
+  @@unique([contestId, userTeamId])
+  @@index([contestId])
+  @@index([userId])
+  @@index([userTeamId])
+}
+
+model PlayerPoint {
+  id       Int     @id @default(autoincrement())
+  matchId  Int
+  playerId Int
+  points   Decimal @db.Decimal(10, 2)
+  match    Match   @relation(fields: [matchId], references: [id])
+  player   Player  @relation(fields: [playerId], references: [id])
+
+  @@unique([matchId, playerId])
+  @@index([matchId])
+  @@index([playerId])
+}
+
+model MatchSquad {
+  id       Int   @id @default(autoincrement())
+  matchId  Int
+  playerId Int
+  match    Match @relation(fields: [matchId], references: [id])
+  player   Player @relation(fields: [playerId], references: [id])
+
+  @@index([matchId])
+}
+
+model PlayerPoints {
+  id       Int     @id @default(autoincrement())
+  playerId Int
+  matchId  Int
+  points   Decimal @db.Decimal(10, 2)
+  player   Player  @relation(fields: [playerId], references: [id])
+  match    Match   @relation(fields: [matchId], references: [id])
+
+  @@index([playerId])
+  @@index([matchId])
+}
+
+model UserWallet {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @unique
+  user          User          @relation(fields: [userId], references: [id])
+  balance       Decimal       @default(0) @db.Decimal(10, 2)
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id        Int        @id @default(autoincrement())
+  walletId  Int
+  wallet    UserWallet @relation(fields: [walletId], references: [id])
+  type      String     @db.VarChar(20) // deposit, entry_fee, winning
+  amount    Decimal    @db.Decimal(10, 2)
+  createdAt DateTime   @default(now())
+
+  @@index([walletId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
