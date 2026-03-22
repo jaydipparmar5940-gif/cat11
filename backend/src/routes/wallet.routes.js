@@ -16,8 +16,31 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+const prisma = require('../utils/prisma');
+
 router.get('/', authMiddleware, walletController.getWallet);
 router.post('/deposit', authMiddleware, walletController.deposit);
 router.post('/withdraw', authMiddleware, walletController.withdraw);
+
+// ✅ GET WALLET BY USER ID
+router.get("/:userId", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+
+    const wallet = await prisma.userWallet.findUnique({
+      where: { userId }
+    });
+
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found" });
+    }
+
+    res.json(wallet);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 module.exports = router;
