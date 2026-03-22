@@ -1,7 +1,9 @@
 // Centralized API Service
 // -----------------------
 // This file consolidates all backend communication logic.
-// All functions preserve the exact existing endpoint structure and data handling.
+// Base URL is configurable via environment variable (VITE_API_URL).
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('token');
@@ -13,11 +15,15 @@ const getAuthHeader = () => {
  */
 export const matchesApi = {
   getUpcoming: () => 
-    fetch('/api/matches/upcoming')
+    fetch(`${API_BASE}/api/matches/upcoming`)
       .then(res => res.json()),
   
   getDetails: (id) => 
-    fetch(`/api/matches/${id}`)
+    fetch(`${API_BASE}/api/matches/${id}`)
+      .then(res => res.json()),
+  
+  getAll: () =>
+    fetch(`${API_BASE}/api/matches`)
       .then(res => res.json()),
 };
 
@@ -26,7 +32,7 @@ export const matchesApi = {
  */
 export const walletApi = {
   getBalance: () => 
-    fetch('/api/wallet', {
+    fetch(`${API_BASE}/api/wallet`, {
       headers: getAuthHeader()
     }).then(res => res.json()),
 };
@@ -36,14 +42,14 @@ export const walletApi = {
  */
 export const authApi = {
   login: (credentials) => 
-    fetch('/api/auth/login', {
+    fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials)
     }).then(res => res.json()),
 
   signup: (userData) => 
-    fetch('/api/auth/signup', {
+    fetch(`${API_BASE}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)

@@ -31,11 +31,12 @@ const Home = () => {
   const [matches, setMatches] = useState([]);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('Recommended');
   const [currentBanner, setCurrentBanner] = useState(0);
 
   useEffect(() => {
-    // 1. Fetch wallet balance via centralized API
+    // 1. Fetch wallet balance
     walletApi.getBalance()
       .then(data => {
         if (data.success && data.wallet) {
@@ -44,17 +45,20 @@ const Home = () => {
       })
       .catch(err => console.error('Error fetching balance:', err));
 
-    // 2. Fetch upcoming matches via centralized API
-    matchesApi.getUpcoming()
+    // 2. Fetch ALL matches for production integration
+    matchesApi.getAll()
       .then(data => {
-        if (data.success && Array.isArray(data.data)) {
-          setMatches(data.data);
-        }
+        // Handle both direct array or wrapped data structure
+        const matchData = Array.isArray(data) ? data : (data.success ? data.data : []);
+        setMatches(matchData);
+        setError(null);
       })
-      .catch(err => console.error('Error fetching matches:', err))
+      .catch(err => {
+        console.error('Error fetching matches:', err);
+        setError('Failed to load matches. Please try again.');
+      })
       .finally(() => setLoading(false));
 
-    // 3. Banner Auto-play
     const timer = setInterval(() => {
       setCurrentBanner(prev => (prev + 1) % BANNER_IMAGES.length);
     }, 4000);
@@ -128,13 +132,21 @@ const Home = () => {
       <main className="home-scroll-content">
         <div className="matches-container">
           {loading ? (
-            <div className="loading-placeholder">Loading matches...</div>
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <span>Fetching live matches...</span>
+            </div>
+          ) : error ? (
+            <div className="error-state">
+              <p>{error}</p>
+              <button className="retry-btn" onClick={() => window.location.reload()}>Retry</button>
+            </div>
           ) : matches.length > 0 ? (
             matches.map(m => (
-              <div key={m.match_id} className="home-match-card" onClick={() => navigate(`/match/${m.match_id}`)}>
+              <div key={m.match_id || m.id} className="home-match-card" onClick={() => navigate(`/match/${m.match_id || m.id}`)}>
                 {/* League Header */}
                 <div className="card-league-header">
-                  <span className="league-name">{m.seriesName || 'Bukhatir T10 League'}</span>
+                  <span className="league-name">{m.seriesName || 'Major League Cricket'}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {matches.indexOf(m) < 2 && (
                       <div className="lineups-status">
@@ -146,10 +158,10 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* Team Full Names Row */}
+                {/* Team Info Row */}
                 <div className="card-team-names-row">
-                  <span className="team-full-name">{m.team_a_info?.name || 'Future Mattress'}</span>
-                  <span className="team-full-name">{m.team_b_info?.name || 'Interglobe Marine'}</span>
+                  <span className="team-full-name">{m.team_a_info?.name || m.team_a || 'Team A'}</span>
+                  <span className="team-full-name" style={{ textAlign: 'right' }}>{m.team_b_info?.name || m.team_b || 'Team B'}</span>
                 </div>
 
                 {/* Main Body */}
@@ -159,15 +171,16 @@ const Home = () => {
                       <div className="color-bar" style={{ backgroundColor: '#2196F3' }}></div>
                       <img src={m.team_a_info?.logo || 'https://api.dicebear.com/7.x/identicon/svg?seed=A'} className="team-logo-circle" alt="T1" />
                     </div>
-                    <span className="team-abbr">{m.team_a_info?.shortName || m.team_a}</span>
+                    <span className="team-abbr">{m.team_a_info?.shortName || (m.team_a ? m.team_a.substring(0,3).toUpperCase() : 'T1')}</span>
                   </div>
 
                   <div className="match-status-center">
                     <span className="match-time-red">{getTimeRemaining(m.match_time)}</span>
+                    <span className="match-date-sub">{new Date(m.match_time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
                   </div>
 
                   <div className="team-info-right">
-                    <span className="team-abbr">{m.team_b_info?.shortName || m.team_b}</span>
+                    <span className="team-abbr">{m.team_b_info?.shortName || (m.team_b ? m.team_b.substring(0,3).toUpperCase() : 'T2')}</span>
                     <div className="team-logo-wrap">
                       <img src={m.team_b_info?.logo || 'https://api.dicebear.com/7.x/identicon/svg?seed=B'} className="team-logo-circle" alt="T2" />
                       <div className="color-bar right" style={{ backgroundColor: '#FFC107' }}></div>
@@ -175,21 +188,23 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* Prize Footer */}
+                {/* Action Footer */}
                 <div className="card-mega-footer">
                   <div className="prize-info">
                     <div className="mega-badge">MEGA</div>
-                    <span className="prize-pool-text">₹15 Lakhs</span>
+                    <span className="prize-pool-text">₹25 Lakhs</span>
                   </div>
-                  <div className="footer-action-icons">
-                    <MonitorPlay size={16} />
-                    <Shirt size={16} />
-                  </div>
+                  <button className="join-contest-btn-mini" onClick={(e) => { e.stopPropagation(); navigate(`/match/${m.match_id || m.id}`); }}>
+                    Join
+                  </button>
                 </div>
               </div>
             ))
           ) : (
-            <div className="no-matches">No matches available right now</div>
+            <div className="no-matches">
+              <Trophy size={48} color="#ccc" style={{ marginBottom: '16px' }} />
+              <p>No matches available right now</p>
+            </div>
           )}
         </div>
 

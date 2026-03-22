@@ -263,6 +263,13 @@
   font-size: 14px;
 }
 
+.match-date-sub {
+  font-size: 10px;
+  color: #888;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
 /* Card Footer */
 .card-mega-footer {
   display: flex;
@@ -301,6 +308,59 @@
   gap: 12px;
   color: #666;
   opacity: 0.8;
+}
+
+.join-contest-btn-mini {
+  background: #14CB23;
+  color: white;
+  border: none;
+  padding: 6px 20px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(20, 203, 35, 0.2);
+  transition: transform 0.1s;
+}
+
+.join-contest-btn-mini:active {
+  transform: scale(0.95);
+}
+
+/* --- Loading & Error States --- */
+.loading-state, .error-state, .no-matches {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #666;
+  text-align: center;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(228, 26, 45, 0.1);
+  border-top-color: #E41A2D;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.retry-btn {
+  margin-top: 12px;
+  background: none;
+  border: 1px solid #E41A2D;
+  color: #E41A2D;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* --- Fantasy Help Section --- */
