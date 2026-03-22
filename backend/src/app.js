@@ -56,6 +56,19 @@ app.use('/api/leaderboard', require('./routes/leaderboard.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/wallet', require('./routes/wallet.routes'));
 
+// ── Diagnostic Direct Route ─────────────────────────────────────────────────
+const prisma = require('./utils/prisma');
+app.get('/api/wallet-direct/:id', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const wallet = await prisma.userWallet.findUnique({ where: { userId } });
+    if (!wallet) return res.status(404).json({ error: "Not found" });
+    res.json({ userId: wallet.userId, balance: parseFloat(wallet.balance) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── RapidAPI Cricbuzz direct endpoints ──────────────────────────────────────
 // /api/squad, /api/scorecard, /api/commentary, /api/livescore, /api/lineup, /api/finalscore
 app.use('/api', require('./routes/rapidapi.routes'));
@@ -64,7 +77,7 @@ app.use('/api', require('./routes/rapidapi.routes'));
 // ── Status & Health ─────────────────────────────────────────────────────────
 
 app.get('/', (req, res) => {
-  res.status(200).send('API WORKING ✅');
+  res.status(200).send('API WORKING V3 ✅');
 });
 
 app.get('/health', (req, res) => {
