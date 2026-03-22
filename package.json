@@ -10,7 +10,9 @@
   "main": "index.html",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "start": "npm start --prefix backend",
+    "backend:dev": "npm run dev --prefix backend"
   },
   "devDependencies": {
     "vite": "^5.4.21"
