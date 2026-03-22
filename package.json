@@ -2,6 +2,11 @@
   "name": "CAT11-clone",
   "version": "1.0.0",
   "description": "CAT11 Clone with Vite dev server",
+  "homepage": "https://cat11-viud.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaydipparmar5940-gif/cat11.git"
+  },
   "main": "index.html",
   "scripts": {
     "dev": "vite",

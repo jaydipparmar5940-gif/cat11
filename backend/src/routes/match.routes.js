@@ -4,6 +4,9 @@ const express        = require('express');
 const router         = express.Router();
 const matchCtrl      = require('../controllers/match.controller');
 
+// GET all matches
+router.get('/',               matchCtrl.getAllMatches);
+
 // ── Primary endpoints (as specified) ──────────────────────────────────────
 router.get('/upcoming',        matchCtrl.getUpcomingMatches);   // GET /api/matches/upcoming
 router.get('/live',            matchCtrl.getLiveFromCricApi);   // GET /api/matches/live  (CricAPI direct)

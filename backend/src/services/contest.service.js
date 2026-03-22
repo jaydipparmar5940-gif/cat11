@@ -5,6 +5,10 @@ exports.getContestsByMatch = async (matchId) => {
   return await contestRepo.getContestsByMatch(matchId);
 };
 
+exports.getAllContests = async () => {
+  return await contestRepo.getAllContests();
+};
+
 exports.joinContest = async (userId, contestId, userTeamId) => {
   const existingEntry = await contestRepo.findContestEntry(contestId, userTeamId);
   if (existingEntry) {

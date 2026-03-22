@@ -1,5 +1,15 @@
 const teamService = require('../services/team.service');
 
+exports.getAllTeams = async (req, res) => {
+  try {
+    const teams = await teamService.getAllTeams();
+    res.status(200).json(teams);
+  } catch (error) {
+    console.error('[TEAM CTRL]', error);
+    res.status(500).json({ message: "Error fetching all teams", error: error.message });
+  }
+};
+
 exports.createTeam = async (req, res) => {
   try {
     const { matchId, captainId, viceCaptainId, playerIds } = req.body;

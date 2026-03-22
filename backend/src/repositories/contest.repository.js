@@ -5,6 +5,19 @@ exports.getContestsByMatch = async (matchId) => {
   return prisma.contest.findMany({ where: { matchId } });
 };
 
+exports.getAllContests = async () => {
+  return prisma.contest.findMany({
+    include: {
+      match: {
+        include: {
+          teamA: true,
+          teamB: true
+        }
+      }
+    }
+  });
+};
+
 exports.findContestEntry = async (contestId, userTeamId) => {
   return prisma.contestEntry.findUnique({
     where: { contestId_userTeamId: { contestId, userTeamId } }

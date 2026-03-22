@@ -1,4 +1,0 @@
-Error: 
-EPERM: operation not permitted, rename 'C:\Users\Jimmy\dream11\backend\node_modules\.prisma\client\query_engine-windows.dll.node.tmp23508' -> 'C:\Users\Jimmy\dream11\backend\node_modules\.prisma\client\query_engine-windows.dll.node'
-
-

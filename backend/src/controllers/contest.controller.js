@@ -11,6 +11,15 @@ exports.getContestsByMatch = async (req, res) => {
   }
 };
 
+exports.getAllContests = async (req, res) => {
+  try {
+    const contests = await contestService.getAllContests();
+    res.status(200).json(contests);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching all contests", error: error.message });
+  }
+};
+
 exports.joinContest = async (req, res) => {
   try {
     const { contestId, userTeamId } = req.body;

@@ -1,5 +1,9 @@
 const teamRepo = require('../repositories/team.repository');
 
+exports.getAllTeams = async () => {
+  return await teamRepo.getAllTeams();
+};
+
 exports.createTeam = async (userId, matchId, captainId, viceCaptainId, playerIds) => {
   if (playerIds.length !== 11) {
     throw new Error("Team must have exactly 11 players");
