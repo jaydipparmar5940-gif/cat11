@@ -1,6 +1,10 @@
 const contestRepo = require('../repositories/contest.repository');
 const socketHandler = require('../sockets/socket.handler');
 
+exports.createContest = async (data) => {
+  return await contestRepo.createContest(data);
+};
+
 exports.getContestsByMatch = async (matchId) => {
   return await contestRepo.getContestsByMatch(matchId);
 };

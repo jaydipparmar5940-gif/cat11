@@ -1,5 +1,4 @@
-const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const prisma = require('../utils/prisma');
 
 const PLAYER_SELECT = `
   SELECT
@@ -33,46 +32,46 @@ exports.getPlayers = async (role, team, q) => {
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `${PLAYER_SELECT} ${where} ORDER BY p.role ASC, p.name ASC`,
-    params
+    ...params
   );
   return rows;
 };
 
 exports.getPlayerById = async (playerId) => {
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `${PLAYER_SELECT} WHERE p.id = $1`,
-    [playerId]
+    playerId
   );
   return rows[0];
 };
 
 exports.getMatchTeams = async (matchId) => {
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `SELECT "teamAId", "teamBId" FROM "Match" WHERE id = $1`,
-    [matchId]
+    matchId
   );
   return rows[0];
 };
 
 exports.getMatchSquadPlayers = async (matchId) => {
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `${PLAYER_SELECT}
      JOIN "MatchSquad" ms ON ms."playerId" = p.id
      WHERE ms."matchId" = $1
      ORDER BY p.role ASC, p.name ASC`,
-    [matchId]
+    matchId
   );
   return rows;
 };
 
 exports.getPlayersByTeams = async (teamAId, teamBId) => {
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `${PLAYER_SELECT}
      WHERE p."teamId" IN ($1, $2)
      ORDER BY p.role ASC, p.name ASC`,
-    [teamAId, teamBId]
+    teamAId, teamBId
   );
   return rows;
 };

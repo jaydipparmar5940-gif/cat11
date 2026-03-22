@@ -1,5 +1,21 @@
 const contestService = require('../services/contest.service');
 
+exports.createContest = async (req, res) => {
+  try {
+    const { matchId, entryFee, totalSpots, prizePool } = req.body;
+    const contest = await contestService.createContest({
+      matchId: parseInt(matchId),
+      entryFee: parseFloat(entryFee),
+      totalSpots: parseInt(totalSpots),
+      prizePool: parseFloat(prizePool)
+    });
+    res.status(201).json(contest);
+  } catch (error) {
+    console.error('[CONTEST CTRL] create error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.getContestsByMatch = async (req, res) => {
   try {
     const matchId = parseInt(req.params.matchId);

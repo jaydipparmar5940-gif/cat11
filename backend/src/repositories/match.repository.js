@@ -1,5 +1,4 @@
-const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const prisma = require('../utils/prisma');
 
 const MATCH_SELECT = `
   SELECT
@@ -37,19 +36,19 @@ const PLAYERS_SELECT = `
 `;
 
 exports.getUpcomingMatches = async () => {
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `${MATCH_SELECT} WHERE m.status = 'UPCOMING' ORDER BY m."matchStartTime" ASC`
   );
   return rows;
 };
 
 exports.getMatchDetails = async (matchId) => {
-  const { rows } = await pool.query(`${MATCH_SELECT} WHERE m.id = $1`, [matchId]);
+  const rows = await prisma.$queryRawUnsafe(`${MATCH_SELECT} WHERE m.id = $1`, matchId);
   return rows;
 };
 
 exports.getMatchPlayersByMatchId = async (matchId) => {
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `${PLAYERS_SELECT}
      WHERE p."teamId" IN (
        SELECT "teamAId" FROM "public"."Match" WHERE id = $1
@@ -57,24 +56,24 @@ exports.getMatchPlayersByMatchId = async (matchId) => {
        SELECT "teamBId" FROM "public"."Match" WHERE id = $1
      )
      ORDER BY p.role ASC, p.name ASC`,
-    [matchId]
+    matchId
   );
   return rows;
 };
 
 exports.getMatchSquad = async (matchId) => {
-  const { rows } = await pool.query(
+  const rows = await prisma.$queryRawUnsafe(
     `${PLAYERS_SELECT}
      JOIN "public"."MatchSquad" ms ON ms."playerId" = p.id
      WHERE ms."matchId" = $1
      ORDER BY p.role ASC, p.name ASC`,
-    [matchId]
+    matchId
   );
   return rows;
 };
 
 exports.getMatchContext = async (matchId) => {
-  const { rows } = await pool.query(`SELECT id FROM "public"."Match" WHERE id = $1`, [matchId]);
+  const rows = await prisma.$queryRawUnsafe(`SELECT id FROM "public"."Match" WHERE id = $1`, matchId);
   return rows;
 };
 
@@ -82,12 +81,12 @@ exports.getAllMatchesWithStatus = async (status) => {
   const params = [];
   let where = '';
   if (status) { params.push(status.toUpperCase()); where = `WHERE m.status = $1`; }
-  const { rows } = await pool.query(`${MATCH_SELECT} ${where} ORDER BY m."matchStartTime" ASC`, params);
+  const rows = await prisma.$queryRawUnsafe(`${MATCH_SELECT} ${where} ORDER BY m."matchStartTime" ASC`, ...params);
   return rows;
 };
 
 exports.getMatchContests = async (matchId) => {
-  const { rows } = await pool.query(`
+  const rows = await prisma.$queryRawUnsafe(`
     SELECT
       c.id, c."entryFee", c."totalSpots", c."joinedSpots", c."prizePool", c.status,
       CASE
@@ -100,6 +99,6 @@ exports.getMatchContests = async (matchId) => {
     FROM "public"."Contest" c
     WHERE c."matchId" = $1
     ORDER BY c."prizePool" DESC
-  `, [matchId]);
+  `, matchId);
   return rows;
 };

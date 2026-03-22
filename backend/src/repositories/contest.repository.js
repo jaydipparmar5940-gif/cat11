@@ -1,6 +1,10 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+exports.createContest = async (data) => {
+  return prisma.contest.create({ data });
+};
+
 exports.getContestsByMatch = async (matchId) => {
   return prisma.contest.findMany({ where: { matchId } });
 };
