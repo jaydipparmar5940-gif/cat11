@@ -15,19 +15,17 @@ const Wallet = () => {
   }, []);
 
   const fetchBalance = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
+    // We are now fetching directly from the proven Render API endpoint
     try {
-      const res = await fetch('/api/wallet', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await fetch('https://cat11.onrender.com/api/wallet/3');
       const data = await res.json();
-      if (data.success) setBalance(data.wallet.balance);
+      
+      // The Render API returns: { userId: 3, balance: 100 }
+      if (data && data.balance !== undefined) {
+        setBalance(data.balance);
+      }
     } catch (err) {
-      console.error('Error fetching balance:', err);
+      console.error('Error fetching balance from Render:', err);
     }
   };
 
