@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Mail, Phone, Lock, User as UserIcon, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import './Signup.css';
+import { authApi } from '../api';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -27,17 +28,12 @@ const Signup = () => {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          confirm_password: formData.password
-        })
+      const data = await authApi.signup({
+        ...formData,
+        confirm_password: formData.password
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      if (data.success || data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         setSuccess(true);
