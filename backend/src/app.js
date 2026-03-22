@@ -61,9 +61,18 @@ app.use('/api/wallet', require('./routes/wallet.routes'));
 app.use('/api', require('./routes/rapidapi.routes'));
 
 
-// Health check
+// ── Status & Health ─────────────────────────────────────────────────────────
+
+app.get('/', (req, res) => {
+  res.status(200).send('API WORKING ✅');
+});
+
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date() });
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // Error handling middleware

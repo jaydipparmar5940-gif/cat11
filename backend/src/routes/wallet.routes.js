@@ -22,24 +22,32 @@ router.get('/', authMiddleware, walletController.getWallet);
 router.post('/deposit', authMiddleware, walletController.deposit);
 router.post('/withdraw', authMiddleware, walletController.withdraw);
 
-// ✅ GET WALLET BY USER ID
-router.get("/:userId", async (req, res) => {
+// ✅ GET WALLET BY ID (Production Refinement)
+router.get("/:id", async (req, res) => {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId = parseInt(req.params.id);
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Invalid User ID format" });
+    }
 
     const wallet = await prisma.userWallet.findUnique({
       where: { userId }
     });
 
     if (!wallet) {
-      return res.status(404).json({ message: "Wallet not found" });
+      return res.status(404).json({ error: "User wallet not found" });
     }
 
-    res.json(wallet);
+    // Returning exact requested JSON format
+    res.json({
+      userId: wallet.userId,
+      balance: parseFloat(wallet.balance)
+    });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error(`[WALLET API ERROR]: ${error.message}`);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
