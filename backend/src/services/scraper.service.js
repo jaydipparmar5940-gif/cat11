@@ -1,7 +1,7 @@
 require('dotenv').config();
 const axios = require('axios');
 const cheerio = require('cheerio');
-const Queue = require('bull');
+const { createSafeBullQueue } = require('../utils/redis');
 
 // Real scraper would use Puppeteer
 // Mock data generation for local development without dependencies
@@ -47,8 +47,7 @@ let scoreQueue;
 
 exports.startMockEventGenerator = async (matchId) => {
   if (!scoreQueue) {
-    const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-    scoreQueue = new Queue('score-updates', redisUrl);
+    scoreQueue = createSafeBullQueue('score-updates');
   }
 
   console.log(`[SCRAPER] Fetching real players for Match ${matchId}...`);
@@ -83,10 +82,12 @@ exports.startMockEventGenerator = async (matchId) => {
 
       console.log(`[SCRAPER] Generated event for Player ${randomPlayerId}:`, randomEvent);
       
-      scoreQueue.add({
-        matchId,
-        playerStatsMap: { ...playerStatsMap }
-      });
+      if (scoreQueue) {
+        scoreQueue.add({
+          matchId,
+          playerStatsMap: { ...playerStatsMap }
+        });
+      }
     }, 3000);
 
   } catch (err) {

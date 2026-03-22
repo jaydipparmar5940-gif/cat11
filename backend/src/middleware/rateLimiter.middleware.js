@@ -1,8 +1,11 @@
 const { rateLimit } = require('express-rate-limit');
 const { RedisStore } = require('rate-limit-redis');
-const Redis = require('ioredis');
+const { redisClient } = require('../utils/redis');
 
-const redisClient = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+// Fallback to memory store if redis is not available
+const store = redisClient ? new RedisStore({
+  sendCommand: (...args) => redisClient.call(...args),
+}) : undefined;
 
 /**
  * Generic API Limiter
@@ -13,9 +16,7 @@ const apiLimiter = rateLimit({
   max: 150, 
   standardHeaders: true, 
   legacyHeaders: false, 
-  store: new RedisStore({
-    sendCommand: (...args) => redisClient.call(...args),
-  }),
+  store,
   message: { message: "Too many requests from this IP, please try again after 15 minutes" }
 });
 
@@ -28,9 +29,7 @@ const strictLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  store: new RedisStore({
-    sendCommand: (...args) => redisClient.call(...args),
-  }),
+  store,
   message: { message: "Too many requests. Please slow down." }
 });
 
