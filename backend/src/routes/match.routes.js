@@ -9,7 +9,7 @@ router.get('/',               matchCtrl.getAllMatches);
 
 // ── Primary endpoints (as specified) ──────────────────────────────────────
 router.get('/upcoming',        matchCtrl.getUpcomingMatches);   // GET /api/matches/upcoming
-router.get('/live',            matchCtrl.getLiveFromCricApi);   // GET /api/matches/live  (CricAPI direct)
+router.get('/live',            matchCtrl.getLiveFromRapidApi);  // GET /api/matches/live  (RapidAPI direct)
 router.get('/debug',           (req, res) => res.json({ db: process.env.DATABASE_URL }));
 router.get('/debug-db',        async (req, res) => {
   try {
@@ -25,6 +25,6 @@ router.get('/debug-svc', async (req, res) => {
 router.get('/:id',             matchCtrl.getMatchDetails);      // GET /api/matches/:id
 router.get('/:id/squad',       matchCtrl.getMatchSquad);        // GET /api/matches/:id/squad
 router.get('/:id/contests',    matchCtrl.getMatchContests);     // GET /api/matches/:id/contests
-router.get('/:id/cricplayers', matchCtrl.getMatchPlayersFromCricApi); // GET /api/matches/:id/cricplayers
+router.get('/:id/rapidsquad',  matchCtrl.getMatchSquadFromRapidApi); // GET /api/matches/:id/rapidsquad
 
 module.exports = router;

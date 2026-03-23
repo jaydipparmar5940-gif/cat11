@@ -1,16 +1,11 @@
 const matchRepo = require('../repositories/match.repository');
-const cricapiService = require('./cricapi.service');
+const rapidapiService = require('./rapidapi.service');
+const { safeRedisGet, safeRedisSet } = require('./cache.helper');
 const Redis = require('ioredis');
 const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
   maxRetriesPerRequest: 1
 });
 
-async function safeRedisGet(key) {
-  try { return await redis.get(key); } catch (e) { return null; }
-}
-async function safeRedisSet(key, ttl, value) {
-  try { await redis.setex(key, ttl, value); } catch (e) {}
-}
 
 async function attachPlayers(matchRow) {
   try {
@@ -21,12 +16,13 @@ async function attachPlayers(matchRow) {
   }
 }
 
-async function seedFromCricApi() {
-  console.log('[MATCH SERVICE] DB empty — fetching from CricAPI...');
+// Internal seed helper
+async function seedFromRapidApi() {
+  console.log('[MATCH SERVICE] DB empty — fetching from RapidAPI...');
   try {
-    await cricapiService.getUpcomingMatches();
+    await rapidapiService.getUpcomingMatches();
   } catch (err) {
-    console.warn('[MATCH SERVICE] CricAPI seed failed:', err.message);
+    console.warn('[MATCH SERVICE] RapidAPI seed failed:', err.message);
   }
 }
 
@@ -39,7 +35,7 @@ exports.getUpcomingMatches = async () => {
 
   let rows = await matchRepo.getUpcomingMatches();
   if (rows.length === 0) {
-    await seedFromCricApi();
+    await seedFromRapidApi();
     rows = await matchRepo.getUpcomingMatches();
   }
 
@@ -58,8 +54,9 @@ exports.getMatchDetails = async (matchId) => {
   }
 
   let rows = await matchRepo.getMatchDetails(matchId);
+  // Fallback to RapidAPI to seed
   if (rows.length === 0) {
-    await seedFromCricApi();
+    await seedFromRapidApi();
     rows = await matchRepo.getMatchDetails(matchId);
   }
 
@@ -82,13 +79,13 @@ exports.getMatchSquad = async (matchId) => {
 
   let squadRows = await matchRepo.getMatchSquad(matchId);
 
-  // Last resort: call CricAPI
+  // Last resort: call RapidAPI
   if (squadRows.length === 0) {
-    const apiResult = await cricapiService.getMatchPlayers(matchId);
+    const apiResult = await rapidapiService.getMatchSquad(matchId);
     return {
       success: true,
       match_id: matchId,
-      source: 'cricapi',
+      source: 'rapidapi',
       players: apiResult.players || [],
     };
   }

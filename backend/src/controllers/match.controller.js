@@ -1,7 +1,7 @@
 'use strict';
 
 const matchService = require('../services/match.service');
-const cricapiService = require('../services/cricapi.service');
+const rapidapiService = require('../services/rapidapi.service');
 
 exports.getUpcomingMatches = async (req, res) => {
   try {
@@ -70,23 +70,27 @@ exports.getMatchContests = async (req, res) => {
   }
 };
 
-exports.getLiveFromCricApi = async (req, res) => {
+exports.getLiveFromRapidApi = async (req, res) => {
   try {
-    const matches = await cricapiService.getMatchesWithPlayers();
-    return res.status(200).json({ success: true, count: matches.length, data: matches });
+    const matchId = req.query.id; // ?id=xxxxx
+    if (!matchId) return res.status(400).json({ message: 'Need ?id= parameter for live score' });
+    const score = await rapidapiService.getLiveScore(matchId);
+    return res.status(200).json({ success: true, data: score });
   } catch (error) {
-    return res.status(500).json({ message: 'Error fetching from CricAPI', error: error.message });
+    console.error('[MATCH CTRL] getLiveFromRapidApi:', error.message);
+    return res.status(500).json({ message: 'Error fetching live score', error: error.message });
   }
 };
 
-exports.getMatchPlayersFromCricApi = async (req, res) => {
+exports.getMatchSquadFromRapidApi = async (req, res) => {
   try {
     const matchId = parseInt(req.params.id);
     const apiId   = req.query.apiId || null;
     if (isNaN(matchId)) return res.status(400).json({ message: 'Invalid match ID' });
-    const result = await cricapiService.getMatchPlayers(matchId, apiId);
+    const result = await rapidapiService.getMatchSquad(matchId, apiId);
     return res.status(200).json({ success: true, ...result });
   } catch (error) {
-    return res.status(500).json({ message: 'Error fetching players from CricAPI', error: error.message });
+    console.error('[MATCH CTRL] getMatchSquadFromRapidApi:', error.message);
+    return res.status(500).json({ message: 'Error fetching squad from RapidAPI', error: error.message });
   }
 };
