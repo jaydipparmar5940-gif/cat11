@@ -23,7 +23,7 @@ router.get('/debug-svc', async (req, res) => {
 });
 
 router.get('/:id',             matchCtrl.getMatchDetails);      // GET /api/matches/:id
-router.get('/:id/players',     matchCtrl.getMatchPlayers);      // GET /api/matches/:id/players
+router.get('/:id/squad',       matchCtrl.getMatchSquad);        // GET /api/matches/:id/squad
 router.get('/:id/contests',    matchCtrl.getMatchContests);     // GET /api/matches/:id/contests
 router.get('/:id/cricplayers', matchCtrl.getMatchPlayersFromCricApi); // GET /api/matches/:id/cricplayers
 

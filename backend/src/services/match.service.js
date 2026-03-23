@@ -74,17 +74,13 @@ exports.getMatchDetails = async (matchId) => {
   return responseData;
 };
 
-exports.getMatchPlayers = async (matchId) => {
+exports.getMatchSquad = async (matchId) => {
   const matchRows = await matchRepo.getMatchContext(matchId);
   if (matchRows.length === 0) {
     throw new Error('Match not found');
   }
 
   let squadRows = await matchRepo.getMatchSquad(matchId);
-
-  if (squadRows.length === 0) {
-    squadRows = await matchRepo.getMatchPlayersByMatchId(matchId);
-  }
 
   // Last resort: call CricAPI
   if (squadRows.length === 0) {

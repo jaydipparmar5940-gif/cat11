@@ -29,19 +29,19 @@ exports.getMatchDetails = async (req, res) => {
   }
 };
 
-exports.getMatchPlayers = async (req, res) => {
+exports.getMatchSquad = async (req, res) => {
   try {
     const matchId = parseInt(req.params.id);
     if (isNaN(matchId)) return res.status(400).json({ message: 'Invalid match ID' });
 
-    const responseData = await matchService.getMatchPlayers(matchId);
+    const responseData = await matchService.getMatchSquad(matchId);
     return res.status(200).json(responseData);
   } catch (error) {
     if (error.message === 'Match not found') {
       return res.status(404).json({ message: error.message });
     }
-    console.error('[MATCH CTRL] getMatchPlayers:', error.message);
-    return res.status(500).json({ message: 'Error fetching match players', error: error.message });
+    console.error('[MATCH CTRL] getMatchSquad:', error.message);
+    return res.status(500).json({ message: 'Error fetching match squad', error: error.message });
   }
 };
 
