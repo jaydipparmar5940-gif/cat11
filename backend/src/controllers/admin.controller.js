@@ -167,3 +167,31 @@ exports.recalculateLeaderboard = async (req, res) => {
     res.status(500).json({ message: "Error recalculating leaderboard", error: err.message });
   }
 };
+
+// --- MIGRATE & SEED ---
+
+exports.migrateSeed = async (req, res) => {
+  const { Pool } = require('pg');
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+  });
+  const log = [];
+  try {
+    // 1. Add apiId column to Match if missing
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "apiId" TEXT`);
+    log.push('apiId column ensured on Match');
+
+    // 2. Seed from RapidAPI
+    const rapidapiService = require('../services/rapidapi.service');
+    const matches = await rapidapiService.getUpcomingMatches();
+    log.push(`Synced ${matches.length} matches from RapidAPI`);
+
+    res.json({ success: true, log });
+  } catch (err) {
+    console.error('[ADMIN] migrateSeed error:', err.message);
+    res.status(500).json({ success: false, error: err.message, log });
+  } finally {
+    pool.end();
+  }
+};

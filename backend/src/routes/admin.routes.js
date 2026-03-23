@@ -17,4 +17,7 @@ router.put('/players/:id', adminController.editPlayer);
 router.post('/contests', adminController.createContest);
 router.post('/contests/:id/recalculate', adminController.recalculateLeaderboard);
 
+// --- MIGRATION & SEEDING ---
+router.post('/migrate-seed', adminController.migrateSeed);
+
 module.exports = router;
