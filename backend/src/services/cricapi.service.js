@@ -16,7 +16,9 @@ const { PrismaClient } = require('@prisma/client');
 const Redis = require('ioredis');
 
 const prisma = new PrismaClient();
-const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+  maxRetriesPerRequest: 1
+});
 
 // ── Config ──────────────────────────────────────────────────────────
 const RAPID_API_KEY  = process.env.RAPID_API_KEY || '';

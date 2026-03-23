@@ -8,7 +8,9 @@
  */
 
 const Redis = require('ioredis');
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  maxRetriesPerRequest: 1
+});
 
 redis.on('error', (err) => {
   console.error(`[REDIS ERROR] Connection failed: ${err.message}`);

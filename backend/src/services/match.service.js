@@ -1,7 +1,16 @@
 const matchRepo = require('../repositories/match.repository');
 const cricapiService = require('./cricapi.service');
 const Redis = require('ioredis');
-const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+  maxRetriesPerRequest: 1
+});
+
+async function safeRedisGet(key) {
+  try { return await redis.get(key); } catch (e) { return null; }
+}
+async function safeRedisSet(key, ttl, value) {
+  try { await redis.setex(key, ttl, value); } catch (e) {}
+}
 
 async function attachPlayers(matchRow) {
   try {
@@ -23,10 +32,10 @@ async function seedFromCricApi() {
 
 exports.getUpcomingMatches = async () => {
   const CACHE_KEY = 'cache:matches:upcoming';
-  // const cached = await redis.get(CACHE_KEY);
-  // if (cached) {
-  //   return JSON.parse(cached);
-  // }
+  const cached = await safeRedisGet(CACHE_KEY);
+  if (cached) {
+    return JSON.parse(cached);
+  }
 
   let rows = await matchRepo.getUpcomingMatches();
   if (rows.length === 0) {
@@ -37,13 +46,13 @@ exports.getUpcomingMatches = async () => {
   const enriched = await Promise.all(rows.map(attachPlayers));
   const responseData = { success: true, count: enriched.length, data: enriched };
 
-  await redis.setex(CACHE_KEY, 60, JSON.stringify(responseData));
+  await safeRedisSet(CACHE_KEY, 60, JSON.stringify(responseData));
   return responseData;
 };
 
 exports.getMatchDetails = async (matchId) => {
   const CACHE_KEY = `cache:match:${matchId}`;
-  const cached = await redis.get(CACHE_KEY);
+  const cached = await safeRedisGet(CACHE_KEY);
   if (cached) {
     return JSON.parse(cached);
   }
@@ -61,7 +70,7 @@ exports.getMatchDetails = async (matchId) => {
   const enriched = await attachPlayers(rows[0]);
   const responseData = { success: true, data: enriched };
 
-  await redis.setex(CACHE_KEY, 60, JSON.stringify(responseData));
+  await safeRedisSet(CACHE_KEY, 60, JSON.stringify(responseData));
   return responseData;
 };
 
