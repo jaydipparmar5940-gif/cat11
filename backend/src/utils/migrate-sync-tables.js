@@ -48,7 +48,16 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS "team_name" TEXT,
       ADD COLUMN IF NOT EXISTS "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
     `);
-    console.log('- "Player" table updated.');
+    // Ensure UNIQUE(player_id)
+    await client.query(`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'player_player_id_key') THEN
+          ALTER TABLE "Player" ADD CONSTRAINT "player_player_id_key" UNIQUE ("player_id");
+        END IF;
+      END $$;
+    `);
+    console.log('- "Player" table updated with unique constraint.');
 
     // Create LiveScore table
     await client.query(`
@@ -62,6 +71,17 @@ async function migrate() {
       );
     `);
     console.log('- "LiveScore" table ensured.');
+
+    // Update MatchSquad unique constraint
+    await client.query(`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'matchsquad_match_player_key') THEN
+          ALTER TABLE "MatchSquad" ADD CONSTRAINT "matchsquad_match_player_key" UNIQUE ("matchId", "playerId");
+        END IF;
+      END $$;
+    `);
+    console.log('- "MatchSquad" table updated with unique constraint.');
 
     // Create PlayerPoint table
     await client.query(`

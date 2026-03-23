@@ -30,23 +30,48 @@ async function syncPlayers(matchId) {
 
     console.log(`[SYNC] Found ${allPlayers.length} players from API.`);
 
+    const mRow = await pool.query('SELECT id FROM "Match" WHERE "api_id" = $1', [matchId]);
+    const dbMatchId = mRow.rows[0]?.id;
+    if (!dbMatchId) {
+      console.warn(`[SYNC] Match ${matchId} not found in DB. Skipping player sync.`);
+      return { success: false, reason: 'Match not found' };
+    }
+
     for (const p of allPlayers) {
       const playerId   = String(p.id);
       const name       = p.name;
       const teamName   = p.teamName;
-      const role       = p.role || 'BAT'; // Default
+      const role       = p.role || 'BAT'; 
       
-      // UPSERT Player
-      // We look for team by name, fallback to id 1 if not found
-      await pool.query(`
-        INSERT INTO "Player" ("player_id", "name", "role", "team_name", "updated_at")
-        VALUES ($1, $2, $3, $4, NOW())
+      // 1. Ensure Team exists and get ID
+      const tShort = teamName.substring(0, 3).toUpperCase();
+      let tRes = await pool.query('SELECT id FROM "Team" WHERE name = $1', [teamName]);
+      if (!tRes.rows.length) {
+        tRes = await pool.query('INSERT INTO "Team" ("name", "shortName") VALUES ($1, $2) RETURNING id', [teamName, tShort]);
+      }
+      const dbTeamId = tRes.rows[0].id;
+
+      // 2. UPSERT Player
+      const pRes = await pool.query(`
+        INSERT INTO "Player" ("player_id", "name", "role", "team_name", "teamId", "updated_at")
+        VALUES ($1, $2, $3, $4, $5, NOW())
         ON CONFLICT ("player_id") DO UPDATE SET
           "name" = EXCLUDED."name",
           "role" = EXCLUDED."role",
           "team_name" = EXCLUDED."team_name",
-          "updated_at" = NOW();
-      `, [playerId, name, role, teamName]);
+          "teamId" = EXCLUDED."teamId",
+          "updated_at" = NOW()
+        RETURNING id;
+      `, [playerId, name, role, teamName, dbTeamId]);
+      
+      const dbPlayerId = pRes.rows[0].id;
+
+      // 3. Link to MatchSquad
+      await pool.query(`
+        INSERT INTO "MatchSquad" ("matchId", "playerId")
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING;
+      `, [dbMatchId, dbPlayerId]);
     }
 
     console.log(`[SYNC] Player Sync for Match ${matchId} completed.`);

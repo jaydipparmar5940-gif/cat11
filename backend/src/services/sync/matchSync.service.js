@@ -13,6 +13,24 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+const { syncPlayers } = require('./playerSync.service');
+
+async function upsertTeam(name) {
+  if (!name) return null;
+  const shortName = name.substring(0, 3).toUpperCase();
+  const res = await pool.query(`
+    INSERT INTO "Team" ("name", "shortName")
+    VALUES ($1, $2)
+    ON CONFLICT DO NOTHING
+    RETURNING id;
+  `, [name, shortName]);
+  
+  if (res.rows.length) return res.rows[0].id;
+  
+  const existing = await pool.query('SELECT id FROM "Team" WHERE name = $1', [name]);
+  return existing.rows[0]?.id;
+}
+
 async function syncMatches() {
   console.log('[SYNC] Starting Match Sync...');
   try {
@@ -47,19 +65,29 @@ async function syncMatches() {
 
       const leagueName   = m.league_name || 'Standard League';
 
+      const teamAId = await upsertTeam(teamA);
+      const teamBId = await upsertTeam(teamB);
+
+      if (!teamAId || !teamBId) {
+        console.warn(`[SYNC] Skipping match ${matchId} due to missing team IDs.`);
+        continue;
+      }
+
       await pool.query(`
         INSERT INTO "Match" ("api_id", "teamAId", "teamBId", "matchStartTime", "status", "league_name", "updated_at")
-        VALUES (
-          $1, 
-          (SELECT id FROM "Team" WHERE name = $2 LIMIT 1), 
-          (SELECT id FROM "Team" WHERE name = $3 LIMIT 1), 
-          $4, $5, $6, NOW()
-        )
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
         ON CONFLICT ("api_id") DO UPDATE SET
           "status" = EXCLUDED."status",
           "league_name" = EXCLUDED."league_name",
           "updated_at" = NOW();
-      `, [matchId, teamA, teamB, startTime, status, leagueName]);
+      `, [matchId, teamAId, teamBId, startTime, status, leagueName]);
+
+      // Automatically sync players for this match
+      try {
+        await syncPlayers(matchId);
+      } catch (pErr) {
+        console.error(`[SYNC] Player sync failed for ${matchId} during match sync:`, pErr.message);
+      }
     }
 
     console.log('[SYNC] Match Sync Completed Successfully.');
