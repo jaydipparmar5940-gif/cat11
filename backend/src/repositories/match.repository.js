@@ -37,6 +37,16 @@ exports.getUpcomingMatches = async () => {
   return res.rows;
 };
 
+exports.getAllMatchesWithStatus = async (status) => {
+  let query = MATCH_SELECT;
+  if (status) {
+    query += ` WHERE m.status = '${status}'`;
+  }
+  query += ` ORDER BY m."matchStartTime" ASC`;
+  const res = await pool.query(query);
+  return res.rows;
+};
+
 exports.getMatchDetails = async (matchId) => {
   const id = parseInt(matchId);
   const res = await pool.query(`
