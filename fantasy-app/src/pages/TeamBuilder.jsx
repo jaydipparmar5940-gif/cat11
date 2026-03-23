@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Info, HelpCircle, CheckCircle2 } from 'lucide-react';
 import TeamPreview from '../components/TeamPreview';
+import { matchesApi } from '../api';
 import './TeamBuilder.css';
 
 const ROLE_LIMITS = {
@@ -36,20 +37,33 @@ const TeamBuilder = ({ matchId: propMatchId, onCancel }) => {
     if (!matchId) return;
 
     // Fetch match details
-    fetch(`/api/matches/upcoming`)
-      .then(res => res.json())
+    matchesApi.getDetails(matchId)
       .then(data => {
         if (data.success) {
-          const match = data.data.find(m => String(m.match_id) === String(matchId));
-          setMatchData(match);
+          setMatchData(data.data);
         }
       });
 
     // Fetch players
-    fetch(`/api/matches/${matchId}/players`)
+    const normalizeRole = (roleStr) => {
+      if (!roleStr) return 'BAT';
+      const r = roleStr.toLowerCase();
+      if (r.includes('wk') || r.includes('wicket') || r.includes('keeper')) return 'WK';
+      if (r.includes('all') || r.includes('ar')) return 'AR';
+      if (r.includes('bowl')) return 'BOWL';
+      return 'BAT';
+    };
+
+    fetch(`/api/matches/${matchId}/squad`)
       .then(res => res.json())
       .then(data => {
-        if (data.success) setPlayers(data.players || []);
+        if (data.success) {
+          const normalizedPlayers = (data.players || []).map(p => ({
+            ...p,
+            role: normalizeRole(p.role)
+          }));
+          setPlayers(normalizedPlayers);
+        }
         else setError('Failed to load players');
       })
       .catch(() => setError('Error connecting to server'))
@@ -59,6 +73,21 @@ const TeamBuilder = ({ matchId: propMatchId, onCancel }) => {
   const selectedPlayers = players.filter(p => selectedIds.has(p.id));
   const roleCounts = ROLES.reduce((acc, r) => ({ ...acc, [r]: selectedPlayers.filter(p => p.role === r).length }), {});
   const totalCredits = selectedPlayers.reduce((acc, p) => acc + (p.credit || 8.5), 0);
+
+  const getTimeRemaining = (startTime, status) => {
+    if (status === 'LIVE' || status === 'COMPLETED') return status === 'LIVE' ? 'Live' : 'Completed';
+    if (!startTime) return '';
+    const total = Date.parse(startTime) - Date.parse(new Date());
+    if (total <= 0) return "Live";
+    
+    const minutes = Math.floor((total / 1000 / 60) % 60);
+    const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+    const days = Math.floor(total / (1000 * 60 * 60 * 24));
+
+    if (days > 0) return `${days}d ${hours}h left`;
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${minutes}m left`;
+  };
 
   const handleTogglePlayer = (p) => {
     setSelectedIds(prev => {
@@ -130,8 +159,10 @@ const TeamBuilder = ({ matchId: propMatchId, onCancel }) => {
             <ChevronLeft size={24} />
           </button>
           <div className="tb-match-title-group">
-            <span className="tb-match-title">Create Team 1</span>
-            <span className="tb-time-left">17h 30m left</span>
+            <span className="tb-match-title">
+              {matchData?.team_a_info?.shortName || matchData?.team_a_short || 'T1'} vs {matchData?.team_b_info?.shortName || matchData?.team_b_short || 'T2'}
+            </span>
+            <span className="tb-time-left">{getTimeRemaining(matchData?.match_time, matchData?.status)}</span>
           </div>
           <HelpCircle size={20} className="tb-help-icon" />
         </div>
@@ -154,13 +185,13 @@ const TeamBuilder = ({ matchId: propMatchId, onCancel }) => {
                 <span className="tb-logo-fallback">{matchData?.team_a_info?.shortName?.charAt(0) || 'A'}</span>
               </div>
               <div className="tb-id-score">
-                <span className="tb-team-id">{matchData?.team_a_info?.shortName || 'T1'}</span>
+                <span className="tb-team-id">{matchData?.team_a_info?.shortName || matchData?.team_a_short || 'T1'}</span>
                 <span className="tb-team-score-val">0</span>
               </div>
             </div>
             <div className="tb-team-item">
               <div className="tb-id-score right">
-                <span className="tb-team-id">{matchData?.team_b_info?.shortName || 'T2'}</span>
+                <span className="tb-team-id">{matchData?.team_b_info?.shortName || matchData?.team_b_short || 'T2'}</span>
                 <span className="tb-team-score-val">0</span>
               </div>
               <div className="tb-logo-circle">
@@ -255,8 +286,8 @@ const TeamBuilder = ({ matchId: propMatchId, onCancel }) => {
                 >
                   <div className="p-avatar-wrap">
                     <div className="info-icon-small">i</div>
-                    <img src={p.imageUrl || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + p.name} className="p-avatar-v2" alt={p.name} />
-                    <div className="p-team-badge">RCB</div>
+                    <img src={p.imageUrl || p.image || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + p.name} className="p-avatar-v2" alt={p.name} />
+                    <div className="p-team-badge">{p.team_short || p.team?.substring(0,3).toUpperCase() || 'TBA'}</div>
                   </div>
                   
                   <div className="p-info-v2">
@@ -269,8 +300,8 @@ const TeamBuilder = ({ matchId: propMatchId, onCancel }) => {
                   </div>
 
                   <div className="p-stats-v2">
-                    <span className="p-points-v2">419</span>
-                    <span className="p-credits-v2">8.0</span>
+                    <span className="p-points-v2">{p.points || 419}</span>
+                    <span className="p-credits-v2">{p.credit || '8.5'}</span>
                   </div>
 
                   <div className="p-action-v2">

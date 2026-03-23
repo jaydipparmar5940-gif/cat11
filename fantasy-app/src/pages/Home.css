@@ -87,6 +87,28 @@
   opacity: 0.7;
 }
 
+.header-wallet-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.header-wallet-chip:active {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.header-balance-text {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+
 /* --- Filter Tabs (Light Theme) --- */
 .filter-tabs {
   display: flex;

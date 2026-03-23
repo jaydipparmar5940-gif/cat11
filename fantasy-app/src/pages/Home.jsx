@@ -65,16 +65,17 @@ const Home = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const getTimeRemaining = (startTime) => {
+  const getTimeRemaining = (startTime, status) => {
+    if (status === 'LIVE' || status === 'COMPLETED') return status === 'LIVE' ? 'Live' : 'Completed';
     const total = Date.parse(startTime) - Date.parse(new Date());
-    if (total <= 0) return "Started";
+    if (total <= 0) return "Live";
     const minutes = Math.floor((total / 1000 / 60) % 60);
     const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
     const days = Math.floor(total / (1000 * 60 * 60 * 24));
 
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    if (days > 0) return `${days}d ${hours}h left`;
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${minutes}m left`;
   };
 
   return (
@@ -97,7 +98,10 @@ const Home = () => {
 
         <div className="top-actions">
           <Bell size={22} color="#fff" strokeWidth={2} className="header-icon" />
-          <Wallet size={22} color="#fff" strokeWidth={2} className="header-icon" onClick={() => navigate('/wallet')} />
+          <div className="header-wallet-chip" onClick={() => navigate('/wallet')}>
+            <Wallet size={18} color="#fff" strokeWidth={2} />
+            <span className="header-balance-text">₹{parseFloat(balance).toLocaleString()}</span>
+          </div>
         </div>
       </header>
 
@@ -175,7 +179,7 @@ const Home = () => {
                   </div>
 
                   <div className="match-status-center">
-                    <span className="match-time-red">{getTimeRemaining(m.match_time)}</span>
+                    <span className="match-time-red">{getTimeRemaining(m.match_time, m.status)}</span>
                     <span className="match-date-sub">{new Date(m.match_time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
                   </div>
 

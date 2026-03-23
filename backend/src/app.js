@@ -55,6 +55,10 @@ app.use('/api/teams', require('./routes/team.routes'));
 app.use('/api/leaderboard', require('./routes/leaderboard.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/wallet', require('./routes/wallet.routes'));
+app.use('/api/sync', require('./routes/sync.routes'));
+
+// Start background workers
+require('./workers/match-sync.worker');
 
 // ── Diagnostic Direct Route ─────────────────────────────────────────────────
 const prisma = require('./utils/prisma');

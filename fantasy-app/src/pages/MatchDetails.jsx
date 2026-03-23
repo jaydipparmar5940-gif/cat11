@@ -21,6 +21,21 @@ const MatchDetails = () => {
     fetchMyTeams();
   }, [matchId]);
 
+  const getTimeRemaining = (startTime, status) => {
+    if (status === 'LIVE' || status === 'COMPLETED') return status === 'LIVE' ? 'Live' : 'Completed';
+    if (!startTime) return '';
+    const total = Date.parse(startTime) - Date.parse(new Date());
+    if (total <= 0) return "Live";
+    
+    const minutes = Math.floor((total / 1000 / 60) % 60);
+    const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+    const days = Math.floor(total / (1000 * 60 * 60 * 24));
+
+    if (days > 0) return `${days}d ${hours}h left`;
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${minutes}m left`;
+  };
+
   const fetchMatchData = async () => {
     setLoading(true);
     try {
@@ -124,9 +139,9 @@ const MatchDetails = () => {
           <ChevronLeft className="header-icon" onClick={() => navigate('/home')} />
           <div className="match-info-center">
             <span className="match-title-text">
-              {match.team_a_info?.shortName || match.team_a} vs {match.team_b_info?.shortName || match.team_b}
+              {match.team_a_info?.shortName || match.team_a_short || match.team_a} vs {match.team_b_info?.shortName || match.team_b_short || match.team_b}
             </span>
-            <span className="match-timer-text">3h 20m left</span>
+            <span className="match-timer-text">{getTimeRemaining(match.match_time, match.status)}</span>
           </div>
           <div className="header-actions">
             <Bell size={20} className="header-icon" />
