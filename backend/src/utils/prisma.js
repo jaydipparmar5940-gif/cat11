@@ -1,16 +1,11 @@
+const { Pool } = require('pg');
+const { PrismaPg } = require('@prisma/adapter-pg');
 const { PrismaClient } = require('@prisma/client');
 
-let dbUrl = process.env.DATABASE_URL || '';
-if (dbUrl && !dbUrl.includes('pgbouncer=true')) {
-  dbUrl += (dbUrl.includes('?') ? '&' : '?') + 'pgbouncer=true';
-}
+const connectionString = process.env.DATABASE_URL;
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: dbUrl,
-    },
-  },
-});
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 module.exports = prisma;
