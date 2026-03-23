@@ -77,7 +77,7 @@ app.use('/api', require('./routes/rapidapi.routes'));
 // ── Status & Health ─────────────────────────────────────────────────────────
 
 app.get('/', (req, res) => {
-  res.status(200).send('API WORKING V3 ✅');
+  res.status(200).send('API WORKING V4 ✅');
 });
 
 app.get('/health', (req, res) => {

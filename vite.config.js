@@ -17,7 +17,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://cat11.onrender.com',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },
