@@ -16,7 +16,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^5.22.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
