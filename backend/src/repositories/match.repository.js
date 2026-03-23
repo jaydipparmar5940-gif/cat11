@@ -1,105 +1,124 @@
-const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const prisma = require('../utils/prisma');
 
-const MATCH_SELECT = `
-  SELECT
-    m.id                                        AS match_id,
-    t1.name                                     AS team_a,
-    t2.name                                     AS team_b,
-    m."matchStartTime"                          AS match_time,
-    m.status,
-    COALESCE(m.venue, '')                       AS venue,
-    m.api_id,
-    json_build_object(
-      'id',        t1.id,
-      'shortName', COALESCE(t1."shortName", UPPER(SUBSTRING(t1.name, 1, 3))),
-      'logo',      COALESCE(t1.logo, 'https://via.placeholder.com/40')
-    ) AS team_a_info,
-    json_build_object(
-      'id',        t2.id,
-      'shortName', COALESCE(t2."shortName", UPPER(SUBSTRING(t2.name, 1, 3))),
-      'logo',      COALESCE(t2.logo, 'https://via.placeholder.com/40')
-    ) AS team_b_info
-  FROM "public"."Match" m
-  JOIN "public"."Team" t1 ON m."teamAId" = t1.id
-  JOIN "public"."Team" t2 ON m."teamBId" = t2.id
-`;
+const mapMatch = (m) => ({
+  match_id: m.id,
+  team_a: m.teamA?.name,
+  team_b: m.teamB?.name,
+  match_time: m.matchStartTime,
+  status: m.status,
+  venue: m.venue || '',
+  api_id: m.apiId || null,
+  team_a_info: {
+    id: m.teamA?.id,
+    shortName: m.teamA?.shortName || m.teamA?.name?.substring(0, 3).toUpperCase(),
+    logo: m.teamA?.logo || 'https://via.placeholder.com/40'
+  },
+  team_b_info: {
+    id: m.teamB?.id,
+    shortName: m.teamB?.shortName || m.teamB?.name?.substring(0, 3).toUpperCase(),
+    logo: m.teamB?.logo || 'https://via.placeholder.com/40'
+  }
+});
 
-const PLAYERS_SELECT = `
-  SELECT
-    p.id,
-    p.name,
-    p.role,
-    COALESCE(t."shortName", UPPER(SUBSTRING(t.name, 1, 3))) AS team,
-    COALESCE(p."imageUrl", '') AS image
-  FROM "public"."Player" p
-  JOIN "public"."Team" t ON p."teamId" = t.id
-`;
+const mapPlayer = (p, teamName, teamShort) => ({
+  id: p.id,
+  name: p.name,
+  role: p.role,
+  team: teamShort || teamName,
+  image: p.imageUrl || ''
+});
 
 exports.getUpcomingMatches = async () => {
-  const { rows } = await pool.query(
-    `${MATCH_SELECT} WHERE m.status = 'UPCOMING' ORDER BY m."matchStartTime" ASC`
-  );
-  return rows;
+  const matches = await prisma.match.findMany({
+    where: { status: 'UPCOMING' },
+    orderBy: { matchStartTime: 'asc' },
+    include: { teamA: true, teamB: true }
+  });
+  return matches.map(mapMatch);
 };
 
 exports.getMatchDetails = async (matchId) => {
-  const { rows } = await pool.query(`${MATCH_SELECT} WHERE m.id = $1`, [matchId]);
-  return rows;
+  const match = await prisma.match.findUnique({
+    where: { id: parseInt(matchId) },
+    include: { teamA: true, teamB: true }
+  });
+  return match ? [mapMatch(match)] : [];
 };
 
 exports.getMatchPlayersByMatchId = async (matchId) => {
-  const { rows } = await pool.query(
-    `${PLAYERS_SELECT}
-     WHERE p."teamId" IN (
-       SELECT "teamAId" FROM "public"."Match" WHERE id = $1
-       UNION
-       SELECT "teamBId" FROM "public"."Match" WHERE id = $1
-     )
-     ORDER BY p.role ASC, p.name ASC`,
-    [matchId]
-  );
-  return rows;
+  const match = await prisma.match.findUnique({
+    where: { id: parseInt(matchId) },
+    include: { teamA: { include: { players: true } }, teamB: { include: { players: true } } }
+  });
+  if (!match) return [];
+  
+  const players = [];
+  match.teamA.players.forEach(p => players.push(mapPlayer(p, match.teamA.name, match.teamA.shortName)));
+  match.teamB.players.forEach(p => players.push(mapPlayer(p, match.teamB.name, match.teamB.shortName)));
+  
+  players.sort((a, b) => {
+    if (a.role !== b.role) return a.role.localeCompare(b.role);
+    return a.name.localeCompare(b.name);
+  });
+  return players;
 };
 
 exports.getMatchSquad = async (matchId) => {
-  const { rows } = await pool.query(
-    `${PLAYERS_SELECT}
-     JOIN "public"."MatchSquad" ms ON ms."playerId" = p.id
-     WHERE ms."matchId" = $1
-     ORDER BY p.role ASC, p.name ASC`,
-    [matchId]
-  );
-  return rows;
+  // If Squad table is empty, we fallback to all team players
+  const squads = await prisma.matchSquad.findMany({
+    where: { matchId: parseInt(matchId) },
+    include: { player: { include: { team: true } } }
+  });
+  if (!squads || squads.length === 0) {
+    return this.getMatchPlayersByMatchId(matchId);
+  }
+  
+  const players = squads.map(s => mapPlayer(s.player, s.player.team.name, s.player.team.shortName));
+  players.sort((a, b) => {
+    if (a.role !== b.role) return a.role.localeCompare(b.role);
+    return a.name.localeCompare(b.name);
+  });
+  return players;
 };
 
 exports.getMatchContext = async (matchId) => {
-  const { rows } = await pool.query(`SELECT id FROM "public"."Match" WHERE id = $1`, [matchId]);
-  return rows;
+  const match = await prisma.match.findUnique({
+    where: { id: parseInt(matchId) },
+    select: { id: true }
+  });
+  return match ? [{ id: match.id }] : [];
 };
 
 exports.getAllMatchesWithStatus = async (status) => {
-  const params = [];
-  let where = '';
-  if (status) { params.push(status.toUpperCase()); where = `WHERE m.status = $1`; }
-  const { rows } = await pool.query(`${MATCH_SELECT} ${where} ORDER BY m."matchStartTime" ASC`, params);
-  return rows;
+  const where = status ? { status: status.toUpperCase() } : {};
+  const matches = await prisma.match.findMany({
+    where,
+    orderBy: { matchStartTime: 'asc' },
+    include: { teamA: true, teamB: true }
+  });
+  return matches.map(mapMatch);
 };
 
 exports.getMatchContests = async (matchId) => {
-  const { rows } = await pool.query(`
-    SELECT
-      c.id, c."entryFee", c."totalSpots", c."joinedSpots", c."prizePool", c.status,
-      CASE
-        WHEN c."entryFee" = 0              THEN 'Practice Contest'
-        WHEN c."totalSpots" >= 500000      THEN 'Mega Contest'
-        WHEN c."totalSpots" <= 2           THEN 'Head To Head'
-        WHEN c."totalSpots" <= 50          THEN 'Small League'
-        ELSE 'Other Contests'
-      END AS "contestName"
-    FROM "public"."Contest" c
-    WHERE c."matchId" = $1
-    ORDER BY c."prizePool" DESC
-  `, [matchId]);
-  return rows;
+  const contests = await prisma.contest.findMany({
+    where: { matchId: parseInt(matchId) },
+    orderBy: { prizePool: 'desc' }
+  });
+  return contests.map(c => {
+    let contestName = 'Other Contests';
+    if (parseFloat(c.entryFee) === 0) contestName = 'Practice Contest';
+    else if (c.totalSpots >= 500000) contestName = 'Mega Contest';
+    else if (c.totalSpots <= 2) contestName = 'Head To Head';
+    else if (c.totalSpots <= 50) contestName = 'Small League';
+
+    return {
+      id: c.id,
+      entryFee: parseFloat(c.entryFee),
+      totalSpots: c.totalSpots,
+      joinedSpots: c.joinedSpots,
+      prizePool: parseFloat(c.prizePool),
+      status: c.status,
+      contestName
+    };
+  });
 };
