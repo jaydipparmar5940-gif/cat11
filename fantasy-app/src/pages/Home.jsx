@@ -169,7 +169,7 @@ const Home = () => {
                   <div className="team-info-left">
                     <div className="team-logo-wrap">
                       <div className="color-bar" style={{ backgroundColor: '#2196F3' }}></div>
-                      <img src={m.team_a_info?.logo || 'https://api.dicebear.com/7.x/identicon/svg?seed=A'} className="team-logo-circle" alt="T1" />
+                      <img src={(!m.team_a_info?.logo || m.team_a_info?.logo.trim() === '') ? `https://api.dicebear.com/7.x/initials/svg?seed=${m.team_a_info?.shortName || 'A'}&backgroundColor=2196F3` : m.team_a_info.logo} className="team-logo-circle" alt="T1" />
                     </div>
                     <span className="team-abbr">{m.team_a_info?.shortName || (m.team_a ? m.team_a.substring(0,3).toUpperCase() : 'T1')}</span>
                   </div>
@@ -182,7 +182,7 @@ const Home = () => {
                   <div className="team-info-right">
                     <span className="team-abbr">{m.team_b_info?.shortName || (m.team_b ? m.team_b.substring(0,3).toUpperCase() : 'T2')}</span>
                     <div className="team-logo-wrap">
-                      <img src={m.team_b_info?.logo || 'https://api.dicebear.com/7.x/identicon/svg?seed=B'} className="team-logo-circle" alt="T2" />
+                      <img src={(!m.team_b_info?.logo || m.team_b_info?.logo.trim() === '') ? `https://api.dicebear.com/7.x/initials/svg?seed=${m.team_b_info?.shortName || 'B'}&backgroundColor=FFC107` : m.team_b_info.logo} className="team-logo-circle" alt="T2" />
                       <div className="color-bar right" style={{ backgroundColor: '#FFC107' }}></div>
                     </div>
                   </div>
