@@ -1,4 +1,8 @@
-const prisma = require('../utils/prisma');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
 const mapPlayer = (p) => ({
   id: p.id,
@@ -16,7 +20,7 @@ exports.getPlayers = async (role, team, q) => {
   if (team) whereClause += ` AND p."teamId" = ${parseInt(team)}`;
   if (q) whereClause += ` AND p.name ILIKE '%${q.replace(/'/g, "''")}%'`;
 
-  const rows = await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT
       p.id, p.name, p.role,
       t.name AS team,
@@ -28,12 +32,12 @@ exports.getPlayers = async (role, team, q) => {
     WHERE ${whereClause}
     ORDER BY p.role ASC, p.name ASC
   `);
-  return rows.map(mapPlayer);
+  return res.rows.map(mapPlayer);
 };
 
 exports.getPlayerById = async (playerId) => {
   const id = parseInt(playerId);
-  const rows = await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT
       p.id, p.name, p.role,
       t.name AS team,
@@ -44,23 +48,23 @@ exports.getPlayerById = async (playerId) => {
     JOIN "Team" t ON p."teamId" = t.id
     WHERE p.id = ${id}
   `);
-  if (!rows || rows.length === 0) return null;
-  return mapPlayer(rows[0]);
+  if (!res.rows || res.rows.length === 0) return null;
+  return mapPlayer(res.rows[0]);
 };
 
 exports.getMatchTeams = async (matchId) => {
   const id = parseInt(matchId);
-  const rows = await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT "teamAId", "teamBId"
     FROM "Match"
     WHERE id = ${id}
   `);
-  return rows && rows.length > 0 ? rows[0] : null;
+  return res.rows && res.rows.length > 0 ? res.rows[0] : null;
 };
 
 exports.getMatchSquadPlayers = async (matchId) => {
   const id = parseInt(matchId);
-  const rows = await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT
       p.id, p.name, p.role,
       t.name AS team,
@@ -73,13 +77,13 @@ exports.getMatchSquadPlayers = async (matchId) => {
     WHERE s."matchId" = ${id}
     ORDER BY p.role ASC, p.name ASC
   `);
-  return rows.map(mapPlayer);
+  return res.rows.map(mapPlayer);
 };
 
 exports.getPlayersByTeams = async (teamAId, teamBId) => {
   const tA = parseInt(teamAId);
   const tB = parseInt(teamBId);
-  const rows = await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT
       p.id, p.name, p.role,
       t.name AS team,
@@ -91,5 +95,5 @@ exports.getPlayersByTeams = async (teamAId, teamBId) => {
     WHERE p."teamId" IN (${tA}, ${tB})
     ORDER BY p.role ASC, p.name ASC
   `);
-  return rows.map(mapPlayer);
+  return res.rows.map(mapPlayer);
 };

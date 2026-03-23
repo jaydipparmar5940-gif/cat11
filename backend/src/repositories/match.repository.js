@@ -1,4 +1,8 @@
-const prisma = require('../utils/prisma');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
 const MATCH_SELECT = `
   SELECT 
@@ -25,24 +29,26 @@ const MATCH_SELECT = `
 `;
 
 exports.getUpcomingMatches = async () => {
-  return await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     ${MATCH_SELECT}
     WHERE m.status = 'UPCOMING'
     ORDER BY m."matchStartTime" ASC
   `);
+  return res.rows;
 };
 
 exports.getMatchDetails = async (matchId) => {
   const id = parseInt(matchId);
-  return await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     ${MATCH_SELECT}
     WHERE m.id = ${id}
   `);
+  return res.rows;
 };
 
 exports.getMatchPlayersByMatchId = async (matchId) => {
   const id = parseInt(matchId);
-  return await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT
       p.id, p.name, p.role,
       t.name AS team,
@@ -54,11 +60,12 @@ exports.getMatchPlayersByMatchId = async (matchId) => {
     WHERE m.id = ${id}
     ORDER BY p.role ASC, p.name ASC
   `);
+  return res.rows;
 };
 
 exports.getMatchSquad = async (matchId) => {
   const id = parseInt(matchId);
-  const squad = await prisma.$queryRawUnsafe(`
+  const squad = await pool.query(`
     SELECT
       p.id, p.name, p.role,
       t.name AS team,
@@ -71,22 +78,23 @@ exports.getMatchSquad = async (matchId) => {
     ORDER BY p.role ASC, p.name ASC
   `);
 
-  if (!squad || squad.length === 0) {
+  if (!squad.rows || squad.rows.length === 0) {
     return await this.getMatchPlayersByMatchId(id);
   }
-  return squad;
+  return squad.rows;
 };
 
 exports.getMatchContext = async (matchId) => {
   const id = parseInt(matchId);
-  return await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT id FROM "Match" WHERE id = ${id} LIMIT 1
   `);
+  return res.rows;
 };
 
 exports.getMatchContests = async (matchId) => {
   const id = parseInt(matchId);
-  const rows = await prisma.$queryRawUnsafe(`
+  const res = await pool.query(`
     SELECT 
       c.id, c."entryFee", c."totalSpots", c."joinedSpots", c."prizePool", c.status,
       CASE
@@ -101,7 +109,7 @@ exports.getMatchContests = async (matchId) => {
     ORDER BY c."prizePool" DESC
   `);
 
-  return rows.map(r => ({
+  return res.rows.map(r => ({
     ...r,
     entryFee: parseFloat(r.entryFee) || 0,
     prizePool: parseFloat(r.prizePool) || 0
