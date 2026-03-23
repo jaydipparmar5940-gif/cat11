@@ -1,10 +1,7 @@
 const matchRepo = require('../repositories/match.repository');
 const rapidapiService = require('./rapidapi.service');
 const { safeRedisGet, safeRedisSet } = require('./cache.helper');
-const Redis = require('ioredis');
-const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
-  maxRetriesPerRequest: 1
-});
+
 
 
 async function attachPlayers(matchRow) {
