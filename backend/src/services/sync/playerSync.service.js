@@ -33,7 +33,9 @@ async function syncPlayers(matchId) {
       let tRes = await pool.query('SELECT id FROM "Team" WHERE name = $1', [teamName]);
       const dbTeamId = tRes.rows[0]?.id;
 
-      for (const p of (s.players || [])) {
+      const players = s.player || s.players || [];
+      for (const p of players) {
+        if (p.isHeader) continue;
         await upsertPlayerAndLink(p, teamName, dbTeamId, dbMatchId);
       }
     }
@@ -83,9 +85,10 @@ async function syncSeriesSquads(seriesId, apiMatchId = null) {
       // Fetch Players for this specific squad
       try {
         const pRes = await client.get(`/series/v1/${seriesId}/squads/${squadId}`);
-        const players = pRes.data.players || [];
+        const players = pRes.data.player || pRes.data.players || [];
         
         for (const p of players) {
+          if (p.isHeader) continue;
           const isMatchPlayer = dbMatchId && matchTeamIds.includes(dbTeamId);
           await upsertPlayerAndLink(p, teamName, dbTeamId, isMatchPlayer ? dbMatchId : null);
         }
