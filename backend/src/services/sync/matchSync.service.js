@@ -42,7 +42,7 @@ async function syncMatches() {
       (type.seriesMatches || []).forEach(sMatch => {
         if (sMatch.seriesAdWrapper && sMatch.seriesAdWrapper.matches) {
           sMatch.seriesAdWrapper.matches.forEach(m => {
-            allMatches.push({ ...m, league_name: sMatch.seriesAdWrapper.seriesName });
+            allMatches.push({ ...m, league_name: sMatch.seriesAdWrapper.seriesName, series_id: sMatch.seriesAdWrapper.seriesId });
           });
         }
       });
@@ -64,6 +64,7 @@ async function syncMatches() {
       if (info.state === 'Complete' || info.state === 'Result') status = 'COMPLETED';
 
       const leagueName   = m.league_name || 'Standard League';
+      const seriesId     = String(m.series_id || '');
 
       const teamAId = await upsertTeam(teamA);
       const teamBId = await upsertTeam(teamB);
@@ -74,19 +75,21 @@ async function syncMatches() {
       }
 
       await pool.query(`
-        INSERT INTO "Match" ("api_id", "teamAId", "teamBId", "matchStartTime", "status", "league_name", "updated_at")
-        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        INSERT INTO "Match" ("api_id", "series_id", "teamAId", "teamBId", "matchStartTime", "status", "league_name", "updated_at")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         ON CONFLICT ("api_id") DO UPDATE SET
+          "series_id" = EXCLUDED."series_id",
           "status" = EXCLUDED."status",
           "league_name" = EXCLUDED."league_name",
           "updated_at" = NOW();
-      `, [matchId, teamAId, teamBId, startTime, status, leagueName]);
+      `, [matchId, seriesId, teamAId, teamBId, startTime, status, leagueName]);
 
-      // Automatically sync players for this match
+      // Automatically sync players for this match (via Series Squads as fallback)
       try {
-        await syncPlayers(matchId);
+        const { syncSeriesSquads } = require('./playerSync.service');
+        await syncSeriesSquads(seriesId, matchId);
       } catch (pErr) {
-        console.error(`[SYNC] Player sync failed for ${matchId} during match sync:`, pErr.message);
+        console.error(`[SYNC] Squad sync failed for ${matchId}:`, pErr.message);
       }
     }
 

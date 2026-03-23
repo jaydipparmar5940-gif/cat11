@@ -37,6 +37,7 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS "lineup_status" TEXT DEFAULT 'out',
       ADD COLUMN IF NOT EXISTS "lineup_json" JSONB,
       ADD COLUMN IF NOT EXISTS "api_id" TEXT,
+      ADD COLUMN IF NOT EXISTS "series_id" TEXT,
       ADD COLUMN IF NOT EXISTS "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
     `);
     console.log('- "Match" table updated.');
