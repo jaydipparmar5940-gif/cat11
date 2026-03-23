@@ -4,62 +4,92 @@ const mapPlayer = (p) => ({
   id: p.id,
   name: p.name,
   role: p.role,
-  team: p.team?.name,
-  team_short: p.team?.shortName || p.team?.name?.substring(0, 3).toUpperCase(),
-  team_logo: p.team?.logo || '',
-  image_url: p.imageUrl || ''
+  team: p.team,
+  team_short: p.team_short || p.team?.substring(0, 3).toUpperCase(),
+  team_logo: p.team_logo || '',
+  image_url: p.image || ''
 });
 
 exports.getPlayers = async (role, team, q) => {
-  const where = {};
-  if (role) where.role = role.toUpperCase();
-  if (team) where.teamId = parseInt(team);
-  if (q) where.name = { contains: q, mode: 'insensitive' };
+  let whereClause = '1=1';
+  if (role) whereClause += ` AND p.role = '${role.toUpperCase()}'`;
+  if (team) whereClause += ` AND p."teamId" = ${parseInt(team)}`;
+  if (q) whereClause += ` AND p.name ILIKE '%${q.replace(/'/g, "''")}%'`;
 
-  const players = await prisma.player.findMany({
-    where,
-    orderBy: [{ role: 'asc' }, { name: 'asc' }],
-    include: { team: true }
-  });
-  return players.map(mapPlayer);
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT
+      p.id, p.name, p.role,
+      t.name AS team,
+      COALESCE(t."shortName", UPPER(SUBSTRING(t.name, 1, 3))) AS team_short,
+      COALESCE(t.logo, 'https://via.placeholder.com/40') AS team_logo,
+      COALESCE(p."imageUrl", '') AS image
+    FROM "Player" p
+    JOIN "Team" t ON p."teamId" = t.id
+    WHERE ${whereClause}
+    ORDER BY p.role ASC, p.name ASC
+  `);
+  return rows.map(mapPlayer);
 };
 
 exports.getPlayerById = async (playerId) => {
-  const p = await prisma.player.findUnique({
-    where: { id: parseInt(playerId) },
-    include: { team: true }
-  });
-  if (!p) return null;
-  return mapPlayer(p);
+  const id = parseInt(playerId);
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT
+      p.id, p.name, p.role,
+      t.name AS team,
+      COALESCE(t."shortName", UPPER(SUBSTRING(t.name, 1, 3))) AS team_short,
+      COALESCE(t.logo, 'https://via.placeholder.com/40') AS team_logo,
+      COALESCE(p."imageUrl", '') AS image
+    FROM "Player" p
+    JOIN "Team" t ON p."teamId" = t.id
+    WHERE p.id = ${id}
+  `);
+  if (!rows || rows.length === 0) return null;
+  return mapPlayer(rows[0]);
 };
 
 exports.getMatchTeams = async (matchId) => {
-  const match = await prisma.match.findUnique({
-    where: { id: parseInt(matchId) },
-    select: { teamAId: true, teamBId: true }
-  });
-  return match;
+  const id = parseInt(matchId);
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT "teamAId", "teamBId"
+    FROM "Match"
+    WHERE id = ${id}
+  `);
+  return rows && rows.length > 0 ? rows[0] : null;
 };
 
 exports.getMatchSquadPlayers = async (matchId) => {
-  const squads = await prisma.matchSquad.findMany({
-    where: { matchId: parseInt(matchId) },
-    include: { player: { include: { team: true } } }
-  });
-  
-  const mapped = squads.map(s => mapPlayer(s.player));
-  mapped.sort((a, b) => {
-    if (a.role !== b.role) return a.role.localeCompare(b.role);
-    return a.name.localeCompare(b.name);
-  });
-  return mapped;
+  const id = parseInt(matchId);
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT
+      p.id, p.name, p.role,
+      t.name AS team,
+      COALESCE(t."shortName", UPPER(SUBSTRING(t.name, 1, 3))) AS team_short,
+      COALESCE(t.logo, 'https://via.placeholder.com/40') AS team_logo,
+      COALESCE(p."imageUrl", '') AS image
+    FROM "MatchSquad" s
+    JOIN "Player" p ON s."playerId" = p.id
+    JOIN "Team" t ON p."teamId" = t.id
+    WHERE s."matchId" = ${id}
+    ORDER BY p.role ASC, p.name ASC
+  `);
+  return rows.map(mapPlayer);
 };
 
 exports.getPlayersByTeams = async (teamAId, teamBId) => {
-  const players = await prisma.player.findMany({
-    where: { teamId: { in: [teamAId, teamBId] } },
-    include: { team: true },
-    orderBy: [{ role: 'asc' }, { name: 'asc' }]
-  });
-  return players.map(mapPlayer);
+  const tA = parseInt(teamAId);
+  const tB = parseInt(teamBId);
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT
+      p.id, p.name, p.role,
+      t.name AS team,
+      COALESCE(t."shortName", UPPER(SUBSTRING(t.name, 1, 3))) AS team_short,
+      COALESCE(t.logo, 'https://via.placeholder.com/40') AS team_logo,
+      COALESCE(p."imageUrl", '') AS image
+    FROM "Player" p
+    JOIN "Team" t ON p."teamId" = t.id
+    WHERE p."teamId" IN (${tA}, ${tB})
+    ORDER BY p.role ASC, p.name ASC
+  `);
+  return rows.map(mapPlayer);
 };

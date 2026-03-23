@@ -1,124 +1,109 @@
 const prisma = require('../utils/prisma');
 
-const mapMatch = (m) => ({
-  match_id: m.id,
-  team_a: m.teamA?.name,
-  team_b: m.teamB?.name,
-  match_time: m.matchStartTime,
-  status: m.status,
-  venue: m.venue || '',
-  api_id: m.apiId || null,
-  team_a_info: {
-    id: m.teamA?.id,
-    shortName: m.teamA?.shortName || m.teamA?.name?.substring(0, 3).toUpperCase(),
-    logo: m.teamA?.logo || 'https://via.placeholder.com/40'
-  },
-  team_b_info: {
-    id: m.teamB?.id,
-    shortName: m.teamB?.shortName || m.teamB?.name?.substring(0, 3).toUpperCase(),
-    logo: m.teamB?.logo || 'https://via.placeholder.com/40'
-  }
-});
-
-const mapPlayer = (p, teamName, teamShort) => ({
-  id: p.id,
-  name: p.name,
-  role: p.role,
-  team: teamShort || teamName,
-  image: p.imageUrl || ''
-});
+const MATCH_SELECT = `
+  SELECT 
+    m.id                                        AS match_id,
+    t1.name                                     AS team_a,
+    t2.name                                     AS team_b,
+    m."matchStartTime"                          AS match_time,
+    m.status,
+    COALESCE(m.venue, '')                       AS venue,
+    m.api_id,
+    json_build_object(
+      'id',        t1.id,
+      'shortName', COALESCE(t1."shortName", UPPER(SUBSTRING(t1.name, 1, 3))),
+      'logo',      COALESCE(t1.logo, 'https://via.placeholder.com/40')
+    ) AS team_a_info,
+    json_build_object(
+      'id',        t2.id,
+      'shortName', COALESCE(t2."shortName", UPPER(SUBSTRING(t2.name, 1, 3))),
+      'logo',      COALESCE(t2.logo, 'https://via.placeholder.com/40')
+    ) AS team_b_info
+  FROM "Match" m
+  JOIN "Team" t1 ON m."teamAId" = t1.id
+  JOIN "Team" t2 ON m."teamBId" = t2.id
+`;
 
 exports.getUpcomingMatches = async () => {
-  const matches = await prisma.match.findMany({
-    where: { status: 'UPCOMING' },
-    orderBy: { matchStartTime: 'asc' },
-    include: { teamA: true, teamB: true }
-  });
-  return matches.map(mapMatch);
+  return await prisma.$queryRawUnsafe(`
+    ${MATCH_SELECT}
+    WHERE m.status = 'UPCOMING'
+    ORDER BY m."matchStartTime" ASC
+  `);
 };
 
 exports.getMatchDetails = async (matchId) => {
-  const match = await prisma.match.findUnique({
-    where: { id: parseInt(matchId) },
-    include: { teamA: true, teamB: true }
-  });
-  return match ? [mapMatch(match)] : [];
+  const id = parseInt(matchId);
+  return await prisma.$queryRawUnsafe(`
+    ${MATCH_SELECT}
+    WHERE m.id = ${id}
+  `);
 };
 
 exports.getMatchPlayersByMatchId = async (matchId) => {
-  const match = await prisma.match.findUnique({
-    where: { id: parseInt(matchId) },
-    include: { teamA: { include: { players: true } }, teamB: { include: { players: true } } }
-  });
-  if (!match) return [];
-  
-  const players = [];
-  match.teamA.players.forEach(p => players.push(mapPlayer(p, match.teamA.name, match.teamA.shortName)));
-  match.teamB.players.forEach(p => players.push(mapPlayer(p, match.teamB.name, match.teamB.shortName)));
-  
-  players.sort((a, b) => {
-    if (a.role !== b.role) return a.role.localeCompare(b.role);
-    return a.name.localeCompare(b.name);
-  });
-  return players;
+  const id = parseInt(matchId);
+  return await prisma.$queryRawUnsafe(`
+    SELECT
+      p.id, p.name, p.role,
+      t.name AS team,
+      COALESCE(t."shortName", UPPER(SUBSTRING(t.name, 1, 3))) AS team_short,
+      COALESCE(p."imageUrl", '') AS image
+    FROM "Player" p
+    JOIN "Team" t ON p."teamId" = t.id
+    JOIN "Match" m ON (m."teamAId" = t.id OR m."teamBId" = t.id)
+    WHERE m.id = ${id}
+    ORDER BY p.role ASC, p.name ASC
+  `);
 };
 
 exports.getMatchSquad = async (matchId) => {
-  // If Squad table is empty, we fallback to all team players
-  const squads = await prisma.matchSquad.findMany({
-    where: { matchId: parseInt(matchId) },
-    include: { player: { include: { team: true } } }
-  });
-  if (!squads || squads.length === 0) {
-    return this.getMatchPlayersByMatchId(matchId);
+  const id = parseInt(matchId);
+  const squad = await prisma.$queryRawUnsafe(`
+    SELECT
+      p.id, p.name, p.role,
+      t.name AS team,
+      COALESCE(t."shortName", UPPER(SUBSTRING(t.name, 1, 3))) AS team_short,
+      COALESCE(p."imageUrl", '') AS image
+    FROM "MatchSquad" s
+    JOIN "Player" p ON s."playerId" = p.id
+    JOIN "Team" t ON p."teamId" = t.id
+    WHERE s."matchId" = ${id}
+    ORDER BY p.role ASC, p.name ASC
+  `);
+
+  if (!squad || squad.length === 0) {
+    return await this.getMatchPlayersByMatchId(id);
   }
-  
-  const players = squads.map(s => mapPlayer(s.player, s.player.team.name, s.player.team.shortName));
-  players.sort((a, b) => {
-    if (a.role !== b.role) return a.role.localeCompare(b.role);
-    return a.name.localeCompare(b.name);
-  });
-  return players;
+  return squad;
 };
 
 exports.getMatchContext = async (matchId) => {
-  const match = await prisma.match.findUnique({
-    where: { id: parseInt(matchId) },
-    select: { id: true }
-  });
-  return match ? [{ id: match.id }] : [];
-};
-
-exports.getAllMatchesWithStatus = async (status) => {
-  const where = status ? { status: status.toUpperCase() } : {};
-  const matches = await prisma.match.findMany({
-    where,
-    orderBy: { matchStartTime: 'asc' },
-    include: { teamA: true, teamB: true }
-  });
-  return matches.map(mapMatch);
+  const id = parseInt(matchId);
+  return await prisma.$queryRawUnsafe(`
+    SELECT id FROM "Match" WHERE id = ${id} LIMIT 1
+  `);
 };
 
 exports.getMatchContests = async (matchId) => {
-  const contests = await prisma.contest.findMany({
-    where: { matchId: parseInt(matchId) },
-    orderBy: { prizePool: 'desc' }
-  });
-  return contests.map(c => {
-    let contestName = 'Other Contests';
-    if (parseFloat(c.entryFee) === 0) contestName = 'Practice Contest';
-    else if (c.totalSpots >= 500000) contestName = 'Mega Contest';
-    else if (c.totalSpots <= 2) contestName = 'Head To Head';
-    else if (c.totalSpots <= 50) contestName = 'Small League';
+  const id = parseInt(matchId);
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT 
+      c.id, c."entryFee", c."totalSpots", c."joinedSpots", c."prizePool", c.status,
+      CASE
+        WHEN c."entryFee" = 0 THEN 'Practice Contest'
+        WHEN c."totalSpots" >= 500000 THEN 'Mega Contest'
+        WHEN c."totalSpots" <= 2 THEN 'Head To Head'
+        WHEN c."totalSpots" <= 50 THEN 'Small League'
+        ELSE 'Other Contests'
+      END as "contestName"
+    FROM "Contest" c
+    WHERE c."matchId" = ${id}
+    ORDER BY c."prizePool" DESC
+  `);
 
-    return {
-      id: c.id,
-      entryFee: parseFloat(c.entryFee),
-      totalSpots: c.totalSpots,
-      joinedSpots: c.joinedSpots,
-      prizePool: parseFloat(c.prizePool),
-      status: c.status,
-      contestName
-    };
-  });
+  return rows.map(r => ({
+    ...r,
+    entryFee: parseFloat(r.entryFee) || 0,
+    prizePool: parseFloat(r.prizePool) || 0
+  }));
 };
